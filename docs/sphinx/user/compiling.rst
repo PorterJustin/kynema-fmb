@@ -71,7 +71,8 @@ Next, the tests can be run either through ctest or directly from the unit test o
 
     ctest
     ./tests/unit_tests/kynema_unit_tests
-    ./tests/regression_tests/kynema_regression_tests
+    cd ./tests/regression_tests # so files can be found correctly
+    ./kynema_regression_tests
 
 You can also build Kynema from this folder using standard make commands.
 
@@ -116,7 +117,7 @@ Clone the spack repository, load the spack environment, and let spack learn abou
     spack compiler find
     spack external find
 
-Install GoogleTest, netCDF, Suite-Sparse, and Eigen
+Install GoogleTest, netCDF, Suite-Sparse, and Eigen, yaml-cpp
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
@@ -125,6 +126,7 @@ Install GoogleTest, netCDF, Suite-Sparse, and Eigen
     spack install netcdf-c
     spack install eigen
     spack install suite-sparse
+    spack install yaml-cpp
 
 Install Kokkos and Kokkos Kernels
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -167,6 +169,7 @@ Load the TPLs into your environment
     spack load suite-sparse
     spack load netcdf-c
     spack load eigen
+    spack load yaml-cpp
     spack load kokkos
     spack load kokkos-kernels
 
