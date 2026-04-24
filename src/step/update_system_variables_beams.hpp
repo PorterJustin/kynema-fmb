@@ -64,7 +64,9 @@ inline void UpdateSystemVariablesBeams(
             beams.qp_Cstar,
             beams.qp_Fe,
             beams.residual_vector_terms,
-            beams.system_matrix_terms
+            beams.system_matrix_terms,
+            parameters.include_stiffness,
+            parameters.apply_tangent
         }
     );
 }

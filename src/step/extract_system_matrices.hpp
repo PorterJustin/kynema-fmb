@@ -1,0 +1,113 @@
+#pragma once
+
+#include <Kokkos_Core.hpp>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
+
+#include "assemble_constraints_matrix.hpp"
+#include "assemble_system_matrix.hpp"
+#include "constraints/constraints.hpp"
+#include "elements/elements.hpp"
+#include "reset_solver.hpp"
+#include "solver/solver.hpp"
+#include "state/state.hpp"
+#include "step_parameters.hpp"
+#include "update_constraint_variables.hpp"
+#include "update_system_variables.hpp"
+
+namespace kynema {
+
+template <typename DeviceType>
+struct SystemMatrices {
+    using ValuesType = typename Solver<DeviceType>::CrsMatrixType::values_type::non_const_type;
+    ValuesType mass_matrix_values;
+    ValuesType stiffness_matrix_values;
+    ValuesType damping_matrix_values;
+    ValuesType constraint_matrix_values;
+};
+
+namespace step {
+
+template <typename DeviceType>
+inline SystemMatrices<DeviceType> ExtractSystemMatrices(
+    const StepParameters& base_parameters, Solver<DeviceType>& solver,
+    Elements<DeviceType>& elements, State<DeviceType>& state,
+    Constraints<DeviceType>& constraints
+) {
+    auto region = Kokkos::Profiling::ScopedRegion("Extract System Matrices");
+
+    using ValuesType = typename SystemMatrices<DeviceType>::ValuesType;
+    SystemMatrices<DeviceType> result;
+    const auto num_values = solver.A.values.extent(0);
+
+    // --- Mass pass ---
+    {
+        auto params = base_parameters;
+        params.beta_prime = 1.0;
+        params.gamma_prime = 0.0;
+        params.include_stiffness = false;
+        params.apply_tangent = false;
+
+        step::ResetSolver(solver);
+        step::UpdateSystemVariables(params, elements, state);
+        step::AssembleSystemMatrix(params, solver, elements);
+
+        result.mass_matrix_values = ValuesType("mass_values", num_values);
+        Kokkos::deep_copy(result.mass_matrix_values, solver.A.values);
+    }
+
+    // --- Stiffness pass ---
+    {
+        auto params = base_parameters;
+        params.beta_prime = 0.0;
+        params.gamma_prime = 0.0;
+        params.include_stiffness = true;
+        params.apply_tangent = true;
+
+        step::ResetSolver(solver);
+        step::UpdateSystemVariables(params, elements, state);
+        step::AssembleSystemMatrix(params, solver, elements);
+
+        result.stiffness_matrix_values = ValuesType("stiffness_values", num_values);
+        Kokkos::deep_copy(result.stiffness_matrix_values, solver.A.values);
+    }
+
+    // --- Damping pass ---
+    {
+        auto params = base_parameters;
+        params.beta_prime = 0.0;
+        params.gamma_prime = 1.0;
+        params.include_stiffness = false;
+        params.apply_tangent = false;
+
+        step::ResetSolver(solver);
+        step::UpdateSystemVariables(params, elements, state);
+        step::AssembleSystemMatrix(params, solver, elements);
+
+        result.damping_matrix_values = ValuesType("damping_values", num_values);
+        Kokkos::deep_copy(result.damping_matrix_values, solver.A.values);
+    }
+
+    // --- Constraint pass ---
+    {
+        step::ResetSolver(solver);
+        step::UpdateConstraintVariables(state, constraints);
+        step::AssembleConstraintsMatrix(solver, constraints);
+
+        result.constraint_matrix_values = ValuesType("constraint_values", num_values);
+        Kokkos::deep_copy(result.constraint_matrix_values, solver.A.values);
+    }
+
+    // --- Restore: re-run with original parameters so element
+    //     storage is consistent for the next solve step ---
+    {
+        auto params = base_parameters;
+        step::ResetSolver(solver);
+        step::UpdateSystemVariables(params, elements, state);
+        step::AssembleSystemMatrix(params, solver, elements);
+    }
+
+    return result;
+}
+
+}  // namespace step
+}  // namespace kynema

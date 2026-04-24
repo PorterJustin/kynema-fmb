@@ -20,6 +20,8 @@ struct CalculateSystemMatrix {
     ConstView<double** [6][6]> stiffness_matrix_terms;
     ConstView<double** [6][6]> inertia_matrix_terms;
     View<double*** [6][6]> system_matrix_terms;
+    bool include_stiffness;
+    bool apply_tangent;
 
     KOKKOS_FUNCTION
     void operator()(size_t node_12) const {
@@ -47,7 +49,14 @@ struct CalculateSystemMatrix {
         CopyMatrix::invoke(subview(tangent, node_T, ALL, ALL), T);
         CopyMatrix::invoke(subview(inertia_matrix_terms, node_1, node_2, ALL, ALL), STpI);
 
-        Gemm::invoke(1., S, T, 1., STpI);
+        if (include_stiffness) {
+            if (apply_tangent) {
+                Gemm::invoke(1., S, T, 1., STpI);
+            } else {
+                for (auto i = 0; i < 36; ++i)
+                    STpI_data[i] += S_data[i];
+            }
+        }
 
         CopyMatrix::invoke(STpI, subview(system_matrix_terms, element, node_1, node_2, ALL, ALL));
     }
