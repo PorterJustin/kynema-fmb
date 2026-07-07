@@ -13,6 +13,7 @@
 #include "step_parameters.hpp"
 #include "update_constraint_variables.hpp"
 #include "update_system_variables.hpp"
+#include "update_tangent_operator.hpp"
 
 namespace kynema {
 
@@ -38,6 +39,10 @@ inline SystemMatrices<DeviceType> ExtractSystemMatrices(
     using ValuesType = typename SystemMatrices<DeviceType>::ValuesType;
     SystemMatrices<DeviceType> result;
     const auto num_values = solver.A.values.extent(0);
+
+    // Tangent depends only on state and base parameters — compute once
+    auto params_for_tangent = base_parameters;
+    step::UpdateTangentOperator(params_for_tangent, state);
 
     // --- Mass pass ---
     {
