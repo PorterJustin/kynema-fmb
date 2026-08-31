@@ -36,7 +36,6 @@ struct CalculateQuadraturePointValues {
     View<double* [6]> residual_vector_terms;
     View<double* [6][6]> system_matrix_terms;
     bool include_stiffness;
-    bool apply_tangent;
 
     KOKKOS_FUNCTION
     void operator()(size_t element) const {
@@ -146,12 +145,7 @@ struct CalculateQuadraturePointValues {
             }
 
             if (include_stiffness) {
-                if (apply_tangent) {
-                    Gemm::invoke(1., Kuu, T, 1., STpI);
-                } else {
-                    for (auto i = 0; i < 36; ++i)
-                        STpI_data[i] += Kuu_data[i];
-                }
+                Gemm::invoke(1., Kuu, T, 1., STpI);
             }
 
             CopyMatrix::invoke(

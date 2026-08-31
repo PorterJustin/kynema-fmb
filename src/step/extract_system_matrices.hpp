@@ -53,7 +53,6 @@ inline SystemMatrices<DeviceType> ExtractSystemMatrices(
         params.gamma_prime = 0.0;
         params.conditioner = 1.0;
         params.include_stiffness = false;
-        params.apply_tangent = false;
 
         step::ResetSolver(solver);
         step::UpdateSystemVariables(params, elements, state);
@@ -71,7 +70,6 @@ inline SystemMatrices<DeviceType> ExtractSystemMatrices(
         params.gamma_prime = 0.0;
         params.conditioner = 1.0;
         params.include_stiffness = true;
-        params.apply_tangent = false; // effectively overridden to false by using params_for_tangent.h = 0.0
 
         step::ResetSolver(solver);
         step::UpdateSystemVariables(params, elements, state);
@@ -89,7 +87,6 @@ inline SystemMatrices<DeviceType> ExtractSystemMatrices(
         params.gamma_prime = 1.0;
         params.conditioner = 1.0;
         params.include_stiffness = false;
-        params.apply_tangent = false;
 
         step::ResetSolver(solver);
         step::UpdateSystemVariables(params, elements, state);

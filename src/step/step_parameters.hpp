@@ -24,7 +24,6 @@ struct StepParameters {
     double relative_convergence_tol;  //< relative convergence tolerance
     size_t static_load_retries;  //< maximum number of load reduction attempts for static analysis
     bool include_stiffness{true};  //< include stiffness terms in system matrix
-    bool apply_tangent{true};      //< multiply stiffness by tangent operator T
 
     /**
      * @brief Constructor for the StepParameters object
