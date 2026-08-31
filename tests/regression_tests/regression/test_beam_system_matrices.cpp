@@ -101,7 +101,7 @@ TEST(DynamicBeamTest, SystemMatrices) {
     // Solution parameters
     const bool is_dynamic_solve(true);
     const size_t max_iter(5);
-    const double step_size(0.0001);  // seconds
+    const double step_size(0.001);  // seconds
     const double rho_inf(1.0);
     const int num_steps(1000);
 
@@ -111,6 +111,17 @@ TEST(DynamicBeamTest, SystemMatrices) {
     // Create solver, elements, constraints, and state
     auto [state, elements, constraints] = model.CreateSystem();
     auto solver = CreateSolver<>(state, elements, constraints);
+
+    // Test that the tangent operator is correctly handled (not included)
+    // if q_delta is 0, then tangent operator is identity, so need to change it for test.
+    auto q_delta_host = Kokkos::create_mirror_view(state.q_delta);
+    Kokkos::deep_copy(q_delta_host, state.q_delta);
+    for (size_t i = 0; i < state.num_system_nodes; ++i) {
+        for (int j = 3; j < 6; ++j) {
+            q_delta_host(i, j) = 1.0;
+        }
+    }
+    Kokkos::deep_copy(state.q_delta, q_delta_host);
 
     // Extract the system matrices here to verify them.
     auto matrices = step::ExtractSystemMatrices(parameters, solver, elements, state, constraints);
