@@ -6,12 +6,12 @@
 #include "interfaces/blade/blade_interface_builder.hpp"
 #include "interfaces/components/beam_builder.hpp"
 
-namespace kynema::tests {
+namespace kynema_fmb::tests {
 
 /**
  * @brief Static bending benchmark test for a twisted composite cantilever beam
  *
- * @details This problem demonstrates the ability of Kynema to analyze a twisted composite beam
+ * @details This problem demonstrates the ability of Kynema-FMB to analyze a twisted composite beam
  * with geometric twist along its length. This is an important use case for wind turbine blade
  * analysis, as turbine blades typically have significant twist from root to tip to optimize
  * aerodynamic performance.
@@ -33,7 +33,7 @@ namespace kynema::tests {
  *       "BeamDyn: a high-fidelity wind turbine blade solver in the FAST modular framework."
  *       Wind Energy 20: 1439-1462.
  *
- * @see Kynema documentation for the full benchmark results:
+ * @see Kynema-FMB documentation for the full benchmark results:
  *      https://kynema.github.io/kynema/testing/twisted.html
  */
 TEST(VerificationTest, Static_TwistedCompositeBeamBending) {
@@ -150,4 +150,4 @@ TEST(VerificationTest, Static_TwistedCompositeBeamBending) {
         // Ansys solid element solution: -3.58423
 }
 
-}  // namespace kynema::tests
+}  // namespace kynema_fmb::tests

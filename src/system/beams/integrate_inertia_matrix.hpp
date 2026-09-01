@@ -3,7 +3,7 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_SIMD.hpp>
 
-namespace kynema::beams {
+namespace kynema_fmb::beams {
 
 template <typename DeviceType>
 struct IntegrateInertiaMatrixElement {
@@ -31,12 +31,13 @@ struct IntegrateInertiaMatrixElement {
     ConstView<double* [6][6]> qp_DD2_;
     double beta_prime_;
     double gamma_prime_;
-    Kokkos::View<double** [6][6], DeviceType> gbl_M_;
+    View<double** [6][6]> gbl_M_;
 
     KOKKOS_FUNCTION
     void operator()(size_t node_simd_node) const {
         using simd_type = Kokkos::Experimental::simd<double>;
-        using tag_type = Kokkos::Experimental::vector_aligned_tag;
+        using tag_type =
+            Kokkos::Experimental::simd_flags<Kokkos::Experimental::simd_alignment_vector_aligned>;
         using Kokkos::ALL;
         using Kokkos::Array;
         using Kokkos::make_pair;
@@ -57,15 +58,18 @@ struct IntegrateInertiaMatrixElement {
         const auto qp_GD2 = ConstView<double* [36]>(qp_GD2_.data(), num_qps);
         const auto qp_DD2 = ConstView<double* [36]>(qp_DD2_.data(), num_qps);
 
+        const auto beta_prime = simd_type(beta_prime_);
+        const auto gamma_prime = simd_type(gamma_prime_);
+
         for (auto qp = 0U; qp < num_qps; ++qp) {
             const auto w = simd_type(qp_weight_(qp));
             const auto jacobian = simd_type(qp_jacobian_(qp));
             const auto phi_1 = simd_type(shape_interp_(node, qp));
-            auto phi_2 = simd_type{};
-            phi_2.copy_from(&shape_interp_(simd_node, qp), tag_type());
+            const auto phi_2 =
+                simd_unchecked_load<simd_type>(&shape_interp_(simd_node, qp), tag_type());
             const auto phi_prime_1 = simd_type(shape_deriv_(node, qp));
-            auto phi_prime_2 = simd_type{};
-            phi_prime_2.copy_from(&shape_deriv_(simd_node, qp), tag_type());
+            const auto phi_prime_2 =
+                simd_unchecked_load<simd_type>(&shape_deriv_(simd_node, qp), tag_type());
             const auto c1 = (phi_prime_1 * phi_prime_2) * (w / jacobian);
             const auto c2 = (phi_prime_1 * phi_2) * w;
             const auto c3 = (phi_1 * phi_prime_2) * w;
@@ -76,7 +80,7 @@ struct IntegrateInertiaMatrixElement {
             const auto GD1_local = subview(qp_GD1, qp, ALL);
             const auto GD2_local = subview(qp_GD2, qp, ALL);
             const auto DD2_local = subview(qp_DD2, qp, ALL);
-            for (auto i = 0; i < 36; ++i) {
+            for (auto i = 0U; i < 36; ++i) {
                 const auto Muu = simd_type(Muu_local(i));
                 const auto G_I = simd_type(G_I_local(i));
                 const auto Duu = simd_type(Duu_local(i));
@@ -85,20 +89,23 @@ struct IntegrateInertiaMatrixElement {
                 const auto DD2 = simd_type(DD2_local(i));
                 const auto Mij = c4 * Muu;
                 const auto Gij = c1 * Duu + c2 * GD1 + c3 * DD2 + c4 * (G_I + GD2);
-                local_M[i] = local_M[i] + (beta_prime_ * Mij) + (gamma_prime_ * Gij);
+                local_M[i] = local_M[i] + (beta_prime * Mij) + (gamma_prime * Gij);
             }
         }
 
-        const auto num_lanes = Kokkos::min(width, num_nodes - simd_node);
+        const auto num_lanes =
+            Kokkos::min(width, static_cast<decltype(width)>(num_nodes - simd_node));
         const auto global_M = View<double** [36]>(gbl_M_.data(), num_nodes, num_nodes);
-        const auto M_slice =
-            subview(global_M, node, make_pair(simd_node, simd_node + num_lanes), ALL);
+        const auto M_slice = subview(
+            global_M, node, make_pair(simd_node, simd_node + static_cast<std::size_t>(num_lanes)),
+            ALL
+        );
 
-        for (auto lane = 0U; lane < num_lanes; ++lane) {
-            for (auto component = 0; component < 36; ++component) {
+        for (auto lane = 0; lane < num_lanes; ++lane) {
+            for (auto component = 0U; component < 36; ++component) {
                 M_slice(lane, component) = local_M[component][lane];
             }
         }
     }
 };
-}  // namespace kynema::beams
+}  // namespace kynema_fmb::beams

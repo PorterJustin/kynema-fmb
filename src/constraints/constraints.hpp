@@ -12,7 +12,7 @@
 #include "dof_management/freedom_signature.hpp"
 #include "model/node.hpp"
 
-namespace kynema {
+namespace kynema_fmb {
 
 /**
  * @brief Container class for managing multiple constraints in a simulation
@@ -60,8 +60,8 @@ struct Constraints {
     View<double* [6]> lambda;
 
     // Host mirrors for CPU access
-    typename View<double* [7]>::HostMirror host_input;
-    typename View<double* [3]>::HostMirror host_output;
+    typename View<double* [7]>::host_mirror_type host_input;
+    typename View<double* [3]>::host_mirror_type host_output;
 
     // System contributions
     View<double* [6]> residual_terms;
@@ -189,16 +189,20 @@ struct Constraints {
 
                 host_base_active_dofs(constraint) = 0UL;
                 host_target_active_dofs(constraint) = 6UL;
-            } else if (c.type == constraints::ConstraintType::RigidJoint ||
-                       c.type == constraints::ConstraintType::RevoluteJoint ||
-                       c.type == constraints::ConstraintType::RotationControl) {
+            } else if (
+                c.type == constraints::ConstraintType::RigidJoint ||
+                c.type == constraints::ConstraintType::RevoluteJoint ||
+                c.type == constraints::ConstraintType::RotationControl
+            ) {
                 host_base_freedom(constraint) = dof::FreedomSignature::AllComponents;
                 host_target_freedom(constraint) = dof::FreedomSignature::AllComponents;
 
                 host_base_active_dofs(constraint) = 6UL;
                 host_target_active_dofs(constraint) = 6UL;
-            } else if (c.type == constraints::ConstraintType::FixedBC3DOFs ||
-                       c.type == constraints::ConstraintType::PrescribedBC3DOFs) {
+            } else if (
+                c.type == constraints::ConstraintType::FixedBC3DOFs ||
+                c.type == constraints::ConstraintType::PrescribedBC3DOFs
+            ) {
                 host_base_freedom(constraint) = dof::FreedomSignature::NoComponents;
                 host_target_freedom(constraint) = dof::FreedomSignature::JustPosition;
 
@@ -355,4 +359,4 @@ struct Constraints {
     }
 };
 
-}  // namespace kynema
+}  // namespace kynema_fmb

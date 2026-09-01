@@ -5,7 +5,7 @@
 #include "interfaces/blade/blade_interface_builder.hpp"
 #include "interfaces/components/beam_builder.hpp"
 
-namespace kynema::tests {
+namespace kynema_fmb::tests {
 
 TEST(VerificationTest, Dynamic_Iea15MwBladeBending) {
     //----------------------------------
@@ -178,7 +178,7 @@ TEST(VerificationTest, Dynamic_Iea15MwBladeBending) {
     //-----------------------------------------------------
 
     // Using relative tolerance (10%) with minimum absolute threshold for small values
-    // NOTE: The tolerance is high since we don't expect Kynema's constraint-based approach
+    // NOTE: The tolerance is high since we don't expect Kynema-FMB's constraint-based approach
     // to match BeamDyn's Dirichlet BCs based approach. Displacements are much lower than
     // the tolerance for majority of the time stamps.
     constexpr double relative_tolerance{0.10};  // 10% relative tolerance
@@ -196,4 +196,4 @@ TEST(VerificationTest, Dynamic_Iea15MwBladeBending) {
     }
 }
 
-}  // namespace kynema::tests
+}  // namespace kynema_fmb::tests

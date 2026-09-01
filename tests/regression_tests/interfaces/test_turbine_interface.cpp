@@ -9,7 +9,7 @@
 #include "interfaces/turbine/turbine_interface.hpp"
 #include "interfaces/turbine/turbine_interface_builder.hpp"
 
-namespace kynema::tests {
+namespace kynema_fmb::tests {
 
 // This test builds the IEA-15-240-RWT turbine structure from WindIO yaml file
 // and applies a tower load, generator torque, blade pitch, and yaw angle to test the
@@ -311,7 +311,7 @@ TEST(TurbineInterfaceTest, IEA15_Structure) {
     interface.Turbine().tower.nodes.back().loads = {1e5, 0., 0., 0., 0., 0.};
 
     // Apply torque to turbine shaft
-    interface.Turbine().torque_control = -1e8;
+    interface.Turbine().rotor_torque_control = -1e8;
 
     // Calculate number of steps
     const auto n_steps{static_cast<size_t>(duration / time_step)};
@@ -329,7 +329,7 @@ TEST(TurbineInterfaceTest, IEA15_Structure) {
 
         // Turn off the torque control after 500 steps
         if (i % 500 == 0) {
-            interface.Turbine().torque_control = 0.;
+            interface.Turbine().rotor_torque_control = 0.;
         }
 
         // Take step
@@ -350,4 +350,4 @@ TEST(TurbineInterfaceTest, IEA15_Structure) {
     EXPECT_NEAR(tower_top_node.position[6], -0.006718362148918397, 1e-10);
 }
 
-}  // namespace kynema::tests
+}  // namespace kynema_fmb::tests

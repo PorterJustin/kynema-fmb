@@ -7,8 +7,8 @@
 #include <step/step.hpp>
 
 int main() {
-    // Kynema is based on Kokkos for performance portability.  Make sure to
-    // call Kokkos::initialize before creating any Kynema data structures
+    // Kynema-FMB is based on Kokkos for performance portability.  Make sure to
+    // call Kokkos::initialize before creating any Kynema-FMB data structures
     // and Kokkos::finalize after all of those data structures have been destroyed.
     Kokkos::initialize();
     {
@@ -32,8 +32,8 @@ int main() {
             std::array{0., 0., 0., -0.3510e3, -0.3700e3, 141.470e3},
         };
         const auto sections = std::vector{
-            kynema::BeamSection(0., mass_matrix, stiffness_matrix),
-            kynema::BeamSection(1., mass_matrix, stiffness_matrix),
+            kynema_fmb::BeamSection(0., mass_matrix, stiffness_matrix),
+            kynema_fmb::BeamSection(1., mass_matrix, stiffness_matrix),
         };
 
         // We now define the node locations where our solution will be defined.  In this case, we
@@ -54,10 +54,10 @@ int main() {
             {0.9491079123427585, 0.1294849661688697},
         };
 
-        // A Model is Kynema's low level interface for specifying elements, nodes, constraints,
+        // A Model is Kynema-FMB's low level interface for specifying elements, nodes, constraints,
         // and their connectivities.  Once everything has be specified, we will use to model to
-        // create Kynema's fundamental data structures and advance the problem in time.
-        auto model = kynema::Model();
+        // create Kynema-FMB's fundamental data structures and advance the problem in time.
+        auto model = kynema_fmb::Model();
 
         // The aptly named SetGravity method is used to set the gravity vector for the problem.
         model.SetGravity(0., 0., -9.81);
@@ -76,8 +76,7 @@ int main() {
         for (auto blade_number = 0; blade_number < num_blades; ++blade_number) {
             auto beam_node_ids = std::vector<size_t>(node_s.size());
             std::transform(
-                std::cbegin(node_s), std::cend(node_s), std::begin(beam_node_ids),
-                [&](auto s) {
+                std::cbegin(node_s), std::cend(node_s), std::begin(beam_node_ids), [&](auto s) {
                     return model.AddNode()
                         .SetElemLocation(s)
                         .SetPosition(10. * s, 0., 0., 1., 0., 0., 0.)
@@ -108,7 +107,7 @@ int main() {
         }
         auto hub_bc_id = model.AddPrescribedBC(hub_node_id);
 
-        // Now that the problem has been fully described in the model, we will create Kynema's
+        // Now that the problem has been fully described in the model, we will create Kynema-FMB's
         // main data structures: State, Elements, Constraints, and Solver.
         //
         // The CreateSystem method takes an optional template argument with a Kokkos device
@@ -128,7 +127,7 @@ int main() {
         //
         // Solver contains the linear system (sparse matrix, RHS) and linear system solver
         auto [state, elements, constraints] = model.CreateSystem();
-        auto solver = kynema::CreateSolver<>(state, elements, constraints);
+        auto solver = kynema_fmb::CreateSolver<>(state, elements, constraints);
 
         // The final stage is to create a StepParameters object, which contains information like
         // the number of non-linear iterations, time step size, and numerical damping factor used
@@ -139,9 +138,9 @@ int main() {
         const double rho_inf(0.9);
         const double t_end(0.1);
         const auto num_steps = static_cast<size_t>(std::floor(t_end / step_size + 1.0));
-        auto parameters = kynema::StepParameters(is_dynamic_solve, max_iter, step_size, rho_inf);
+        auto parameters = kynema_fmb::StepParameters(is_dynamic_solve, max_iter, step_size, rho_inf);
 
-        // Kynema allows the user to control the actual time stepping process.  This includes
+        // Kynema-FMB allows the user to control the actual time stepping process.  This includes
         // setting forces, post-processing data, or coupling to other codes.
         // For this problem, we will prescribe a rotation on the hub boundary condition, which will
         // be transmitted to the blades through their respective constraints.
@@ -154,11 +153,11 @@ int main() {
             const auto u_hub = std::array{0., 0., 0., q_hub.w(), q_hub.x(), q_hub.y(), q_hub.z()};
             constraints.UpdateDisplacement(hub_bc_id, u_hub);
             [[maybe_unused]] const auto converged =
-                kynema::Step(parameters, solver, elements, state, constraints);
+                kynema_fmb::Step(parameters, solver, elements, state, constraints);
             assert(converged);
         }
     }
-    // Make sure to call finalize after all Kynema data structures are deleted
+    // Make sure to call finalize after all Kynema-FMB data structures are deleted
     // and you're ready to exit your application.
     Kokkos::finalize();
     return 0;

@@ -1,5 +1,5 @@
-# Run this from the root of the Kynema repository e.g.
-# docker build -f recipes/Dockerfile -t kynema:latest .
+# Run this from the root of the Kynema-FMB repository e.g.
+# docker build -f recipes/Dockerfile -t kynema-fmb:latest .
 
 FROM ubuntu:latest
 
@@ -35,27 +35,27 @@ RUN git clone https://github.com/spack/spack.git && \
     spack --insecure install cppcheck && \
     spack install yaml-cpp && \
     spack install kokkos && \
-    spack install kokkos-kernels && \
+    spack install kokkos-kernels@4.7.02 && \
     spack install netcdf-c && \
     spack install suite-sparse && \
     spack install eigen && \
     spack install rosco && \
     spack install openfast
 
-# Step 3: Set up the working directory and copy the Kynema repository
-WORKDIR /projects/kynema
+# Step 3: Set up the working directory and copy the Kynema-FMB repository
+WORKDIR /projects/kynema-fmb
 COPY . .
 
 # Step 4: Load necessary libraries and build the project
-ARG CMAKE_OPTIONS="-DKynema_WRITE_OUTPUTS=ON \
-    -DKynema_ENABLE_OPENFAST_ADI=ON \
-    -DKynema_ENABLE_ROSCO_CONTROLLER=ON \
+ARG CMAKE_OPTIONS="-DKYNEMA_FMB_WRITE_OUTPUTS=ON \
+    -DKYNEMA_FMB_ENABLE_OPENFAST_ADI=ON \
+    -DKYNEMA_FMB_ENABLE_ROSCO_CONTROLLER=ON \
     -DCMAKE_BUILD_TYPE=Release"
 
 ARG N_PARALLEL_JOBS=4
 
 RUN . /spack/share/spack/setup-env.sh && \
-    spack load kokkos kokkos-kernels netdcf-c suite-sparse eigen googletest yaml-cpp rosco openfast && \
+    spack load kokkos kokkos-kernels netdcf-c suite-sparse eigen googletest yaml-cpp rosco@2.9.0 openfast && \
     mkdir docker-build && \
     cd docker-build && \
     cmake .. ${CMAKE_OPTIONS} && \

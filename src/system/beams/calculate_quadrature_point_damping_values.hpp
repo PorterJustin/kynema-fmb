@@ -20,7 +20,7 @@
 #include "interpolate_to_quadrature_point_for_damping.hpp"
 #include "system/masses/rotate_section_matrix.hpp"
 
-namespace kynema::beams {
+namespace kynema_fmb::beams {
 template <typename DeviceType>
 struct CalculateQuadraturePointDampingValues {
     template <typename ValueType>
@@ -64,7 +64,7 @@ struct CalculateQuadraturePointDampingValues {
         using Kokkos::make_pair;
         using Kokkos::subview;
         using CopyMatrix = KokkosBatched::SerialCopy<>;
-        using CopyVector = KokkosBatched::SerialCopy<KokkosBatched::Trans::NoTranspose, 1>;
+        using CopyVector = KokkosBatched::SerialCopy<KokkosBatched::Trans::NoTranspose>;
 
         // If mu is all zeros, zero the output and skip the calculation
         if (mu(0) == 0.0 && mu(1) == 0.0 && mu(2) == 0.0 && mu(3) == 0.0 && mu(4) == 0.0 &&
@@ -215,4 +215,4 @@ struct CalculateQuadraturePointDampingValues {
     }
 };
 
-}  // namespace kynema::beams
+}  // namespace kynema_fmb::beams

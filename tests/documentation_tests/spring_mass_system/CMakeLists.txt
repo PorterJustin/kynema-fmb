@@ -15,8 +15,10 @@ project(
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-find_package(Kynema REQUIRED)
+if(PROJECT_IS_TOP_LEVEL)
+    find_package(KynemaFMB REQUIRED)
+endif()
 
 add_executable(spring_mass_system)
-target_link_libraries(spring_mass_system PRIVATE Kynema::kynema_library)
+target_link_libraries(spring_mass_system PRIVATE KynemaFMB::kynema_fmb_library)
 target_sources(spring_mass_system PRIVATE spring_mass_system.cpp)

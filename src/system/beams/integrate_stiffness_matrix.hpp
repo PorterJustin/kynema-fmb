@@ -4,7 +4,7 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_SIMD.hpp>
 
-namespace kynema::beams {
+namespace kynema_fmb::beams {
 
 template <typename DeviceType>
 struct IntegrateStiffnessMatrixElement {
@@ -38,7 +38,8 @@ struct IntegrateStiffnessMatrixElement {
     KOKKOS_FUNCTION
     void operator()(size_t node_simd_node) const {
         using simd_type = Kokkos::Experimental::simd<double>;
-        using tag_type = Kokkos::Experimental::vector_aligned_tag;
+        using tag_type =
+            Kokkos::Experimental::simd_flags<Kokkos::Experimental::simd_alignment_vector_aligned>;
         using Kokkos::ALL;
         using Kokkos::Array;
         using Kokkos::make_pair;
@@ -67,11 +68,11 @@ struct IntegrateStiffnessMatrixElement {
             const auto w = simd_type(qp_weight_(qp));
             const auto jacobian = simd_type(qp_jacobian_(qp));
             const auto phi_1 = simd_type(shape_interp_(node, qp));
-            auto phi_2 = simd_type{};
-            phi_2.copy_from(&shape_interp_(simd_node, qp), tag_type());
+            const auto phi_2 =
+                simd_unchecked_load<simd_type>(&shape_interp_(simd_node, qp), tag_type());
             const auto phi_prime_1 = simd_type(shape_deriv_(node, qp));
-            auto phi_prime_2 = simd_type{};
-            phi_prime_2.copy_from(&shape_deriv_(simd_node, qp), tag_type());
+            const auto phi_prime_2 =
+                simd_unchecked_load<simd_type>(&shape_deriv_(simd_node, qp), tag_type());
             const auto A = (phi_1 * phi_2) * (w * jacobian);
             const auto B = (phi_1 * phi_prime_2) * w;
             const auto C = (phi_prime_1 * phi_prime_2) * (w / jacobian);
@@ -85,7 +86,7 @@ struct IntegrateStiffnessMatrixElement {
             const auto KD1_local = subview(qp_KD1, qp, ALL);
             const auto KD2_local = subview(qp_KD2, qp, ALL);
             const auto PD2_local = subview(qp_PD2, qp, ALL);
-            for (auto component = 0; component < 36; ++component) {
+            for (auto component = 0U; component < 36; ++component) {
                 const auto Kuu = simd_type(Kuu_local(component));
                 const auto Cuu = simd_type(Cuu_local(component));
                 const auto Quu = simd_type(Quu_local(component));
@@ -100,17 +101,20 @@ struct IntegrateStiffnessMatrixElement {
             }
         }
 
-        const auto num_lanes = Kokkos::min(width, num_nodes - simd_node);
+        const auto num_lanes =
+            Kokkos::min(width, static_cast<decltype(width)>(num_nodes - simd_node));
         const auto global_M = View<double** [36]>(gbl_M_.data(), num_nodes, num_nodes);
-        const auto M_slice =
-            subview(global_M, node, make_pair(simd_node, simd_node + num_lanes), ALL);
+        const auto M_slice = subview(
+            global_M, node, make_pair(simd_node, simd_node + static_cast<std::size_t>(num_lanes)),
+            ALL
+        );
 
-        for (auto lane = 0U; lane < num_lanes; ++lane) {
-            for (auto component = 0; component < 36; ++component) {
+        for (auto lane = 0; lane < num_lanes; ++lane) {
+            for (auto component = 0U; component < 36; ++component) {
                 M_slice(lane, component) = local_M[component][lane];
             }
         }
     }
 };
 
-}  // namespace kynema::beams
+}  // namespace kynema_fmb::beams

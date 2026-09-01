@@ -6,7 +6,7 @@
 
 #include "state.hpp"
 
-namespace kynema {
+namespace kynema_fmb {
 
 /**
  * @brief Reads State data from a provided restart file.
@@ -29,10 +29,10 @@ inline void ReadStateFromFile(std::istream& input, State<DeviceType>& state) {
         throw std::length_error("Number of system nodes in file is not the same as in model");
     }
 
-    const auto mirror_7 = Kokkos::View<double* [7]>::HostMirror("mirror_7", num_system_nodes);
+    const auto mirror_7 = Kokkos::View<double* [7]>::host_mirror_type("mirror_7", num_system_nodes);
     const auto out_7 = Kokkos::View<double* [7], Kokkos::HostSpace>("out_7", num_system_nodes);
 
-    const auto mirror_6 = Kokkos::View<double* [6]>::HostMirror("mirror_6", num_system_nodes);
+    const auto mirror_6 = Kokkos::View<double* [6]>::host_mirror_type("mirror_6", num_system_nodes);
     const auto out_6 = Kokkos::View<double* [6], Kokkos::HostSpace>("out_6", num_system_nodes);
 
     const auto read_7 = [&](const Kokkos::View<double* [7]>& data) {
@@ -64,4 +64,4 @@ inline void ReadStateFromFile(std::istream& input, State<DeviceType>& state) {
     read_6(state.f);
 }
 
-}  // namespace kynema
+}  // namespace kynema_fmb

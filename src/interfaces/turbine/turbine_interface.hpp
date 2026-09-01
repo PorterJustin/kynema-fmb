@@ -2,6 +2,7 @@
 
 #include "interfaces/components/aerodynamics.hpp"
 #include "interfaces/components/aerodynamics_input.hpp"
+#include "interfaces/components/controller.hpp"
 #include "interfaces/components/controller_input.hpp"
 #include "interfaces/components/outputs_config.hpp"
 #include "interfaces/components/turbine.hpp"
@@ -10,15 +11,14 @@
 #include "interfaces/outputs.hpp"
 #include "model/model.hpp"
 #include "step/step_parameters.hpp"
-#include "utilities/controllers/turbine_controller.hpp"
 
-namespace kynema::interfaces::components {
+namespace kynema_fmb::interfaces::components {
 struct SolutionInput;
 struct TurbineInput;
 struct OutputsConfig;
-}  // namespace kynema::interfaces::components
+}  // namespace kynema_fmb::interfaces::components
 
-namespace kynema::interfaces {
+namespace kynema_fmb::interfaces {
 
 /**
  * @brief Interface for blade simulation that manages state, solver, and components
@@ -129,21 +129,39 @@ public:
 
     void CloseOutputFile();
 
+    /**
+     * @brief Write checkpoint file of current state
+     * @param file_path Name of the checkpoint file to write
+     */
+    void WriteCheckpointFile(const std::string& file_path) const;
+
+    /**
+     * @brief Read checkpoint file and restore state
+     * @param file_path Name of the checkpoint file to read
+     */
+    void ReadCheckpointFile(const std::string& file_path);
+
+    /// @brief Allows time step index to be set externally (e.g., for restart)
+    void SetTimeStepIndex(size_t idx) { this->state.time_step = idx; }
+
 private:
-    Model model;                    ///< Kynema class for model construction
+    Model model;                    ///< Kynema-FMB class for model construction
     components::Turbine turbine;    ///< Turbine model input/output data
-    State<DeviceType> state;        ///< Kynema class for storing system state
-    Elements<DeviceType> elements;  ///< Kynema class for model elements (beams, masses, springs)
-    Constraints<DeviceType> constraints;  ///< Kynema class for constraints tying elements together
-    StepParameters parameters;            ///< Kynema class containing solution parameters
-    Solver<DeviceType> solver;            ///< Kynema class for solving the dynamic system
-    State<DeviceType> state_save;         ///< Kynema class state class for temporarily saving state
-    HostState<DeviceType> host_state;     ///< Host local copy of node state data
-    HostConstraints<DeviceType> host_constraints;         ///< Host local copy of constraint data
-    std::unique_ptr<Outputs> outputs;                     ///< handle to Output for writing to NetCDF
-    std::unique_ptr<util::TurbineController> controller;  ///< DISCON-style controller
+    State<DeviceType> state;        ///< Kynema-FMB class for storing system state
+    Elements<DeviceType> elements;  ///< Kynema-FMB class for model elements (beams, masses, springs)
+    Constraints<DeviceType>
+        constraints;                   ///< Kynema-FMB class for constraints tying elements together
+    StepParameters parameters;         ///< Kynema-FMB class containing solution parameters
+    Solver<DeviceType> solver;         ///< Kynema-FMB class for solving the dynamic system
+    State<DeviceType> state_save;      ///< Kynema-FMB class state class for temporarily saving state
+    HostState<DeviceType> host_state;  ///< Host local copy of node state data
+    HostConstraints<DeviceType> host_constraints;        ///< Host local copy of constraint data
+    std::unique_ptr<Outputs> outputs;                    ///< handle to Output for writing to NetCDF
+    std::unique_ptr<components::Controller> controller;  ///< DISCON-style controller
     std::unique_ptr<components::Aerodynamics> aerodynamics;  ///< Aerodynamics component
     std::array<double, 3> hub_inflow{0., 0., 0.};            ///< Inflow velocity at the hub node
+    double gearbox_ratio{1.0};                               ///< Gearbox ratio
+    double generator_efficiency{1.0};                        ///< Generator efficiency
 
     /**
      * @brief Write rotor time-series data based on constraint outputs
@@ -160,10 +178,7 @@ private:
      * @brief Initialize controller with turbine parameters and connect to constraints
      * @param turbine_input Configuration parameters for turbine geometry and initial conditions
      */
-    void InitializeController(
-        const components::TurbineInput& turbine_input,
-        const components::SolutionInput& solution_input
-    );
+    void InitializeController(const components::TurbineInput& turbine_input);
 
     //------------------------------------------
     // support for time-series outputs
@@ -219,4 +234,4 @@ private:
     void BuildTimeSeriesSchema();
 };
 
-}  // namespace kynema::interfaces
+}  // namespace kynema_fmb::interfaces

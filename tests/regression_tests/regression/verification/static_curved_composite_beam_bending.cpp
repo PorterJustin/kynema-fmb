@@ -4,12 +4,12 @@
 #include "interfaces/blade/blade_interface_builder.hpp"
 #include "interfaces/components/beam_builder.hpp"
 
-namespace kynema::tests {
+namespace kynema_fmb::tests {
 
 /**
  * @brief Static bending benchmark test for a curved composite cantilever beam
  *
- * @details This problem demonstrates the ability of Kynema to analyze beams with initial
+ * @details This problem demonstrates the ability of Kynema-FMB to analyze beams with initial
  * curvature in their reference configuration. This is an important capability for wind
  * turbine blade analysis, as many modern blade designs incorporate prebend (out-of-plane
  * curvature) and sweep (in-plane curvature) to optimize structural and aerodynamic
@@ -26,7 +26,7 @@ namespace kynema::tests {
  *       "Large displacement analysis of three-dimensional beam structures."
  *       International Journal for Numerical Methods in Engineering 14: 961-986.
  *
- * @see Kynema documentation for the full benchmark results and convergence study:
+ * @see Kynema-FMB documentation for the full benchmark results and convergence study:
  *      https://kynema.github.io/kynema/testing/curved.html
  */
 TEST(VerificationTest, Static_CurvedCompositeBeamBending) {
@@ -143,4 +143,4 @@ TEST(VerificationTest, Static_CurvedCompositeBeamBending) {
         // Published solution: 53.4
 }
 
-}  // namespace kynema::tests
+}  // namespace kynema_fmb::tests

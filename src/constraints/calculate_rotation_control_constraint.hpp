@@ -7,7 +7,7 @@
 #include "math/quaternion_operations.hpp"
 #include "math/vector_operations.hpp"
 
-namespace kynema::constraints {
+namespace kynema_fmb::constraints {
 
 /**
  * @brief A Kernel which calculates the residual and gradient contributions of a rotation
@@ -30,7 +30,7 @@ struct CalculateRotationControlConstraint {
         using Kokkos::Array;
         using Kokkos::make_pair;
         using Kokkos::subview;
-        using CopyVector = KokkosBatched::SerialCopy<KokkosBatched::Trans::NoTranspose, 1>;
+        using CopyVector = KokkosBatched::SerialCopy<KokkosBatched::Trans::NoTranspose>;
         using CopyMatrixTranspose = KokkosBatched::SerialCopy<KokkosBatched::Trans::Transpose>;
         using CopyMatrix = KokkosBatched::SerialCopy<>;
 
@@ -141,4 +141,4 @@ struct CalculateRotationControlConstraint {
         }
     }
 };
-}  // namespace kynema::constraints
+}  // namespace kynema_fmb::constraints

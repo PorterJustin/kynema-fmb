@@ -3,7 +3,7 @@
 #include "model/model.hpp"
 #include "turbine.hpp"
 
-namespace kynema::interfaces::components {
+namespace kynema_fmb::interfaces::components {
 [[nodiscard]] const TurbineInput& TurbineBuilder::Input() {
     // Add the blade inputs from the blade builders
     this->input.blades.clear();
@@ -115,7 +115,7 @@ TurbineBuilder& TurbineBuilder::SetRotorSpeed(double speed) {
 }
 
 TurbineBuilder& TurbineBuilder::SetGearBoxRatio(double ratio) {
-    this->input.gear_box_ratio = ratio;
+    this->input.gearbox_ratio = ratio;
     return *this;
 }
 
@@ -133,4 +133,17 @@ TurbineBuilder& TurbineBuilder::SetHubWindSpeed(double speed) {
     this->input.hub_wind_speed = speed;
     return *this;
 }
-}  // namespace kynema::interfaces::components
+
+TurbineBuilder& TurbineBuilder::SetRestartFilePath(const std::string& path) {
+    // "Restart" is legacy terminology for the checkpoint file path used by the
+    // rest of the API (`checkpoint_file_path`, Read/WriteCheckpointFile, etc.).
+    this->input.checkpoint_file_path = path;
+    return *this;
+}
+
+TurbineBuilder& TurbineBuilder::SetStartTime(double time) {
+    this->input.start_time = time;
+    return *this;
+}
+
+}  // namespace kynema_fmb::interfaces::components

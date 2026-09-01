@@ -5,12 +5,12 @@
 #include "interfaces/blade/blade_interface_builder.hpp"
 #include "interfaces/components/beam_builder.hpp"
 
-namespace kynema::tests {
+namespace kynema_fmb::tests {
 
 /**
  * @brief Static pure bending benchmark test for an isotropic cantilever beam rolling into a circle
  *
- * @details This problem demonstrates Kynema's capability to analyze an isotropic beam with no
+ * @details This problem demonstrates Kynema-FMB's capability to analyze an isotropic beam with no
  * initial curvature and with highly nonlinear deflections. In fact, the displacement is so large
  * that the beam bends into a complete circular shape (2π radians of rotation over the 10-unit
  * length), providing a rigorous test of the geometrically exact beam formulation.
@@ -23,8 +23,8 @@ namespace kynema::tests {
  *       J. C. Simo and L. Vu-Quoc (1986). "A three-dimensional finite-strain rod model. Part II."
  *       Computer Methods in Applied Mechanics and Engineering, 58:79–116.
  *
- * @see Kynema documentation for the full benchmark results (we are using the 15-node, 15 quadrature
- *      points with Gauss-Legendre quadrature case here):
+ * @see Kynema-FMB documentation for the full benchmark results (we are using the 15-node, 15
+ * quadrature points with Gauss-Legendre quadrature case here):
  *      https://kynema.github.io/kynema/testing/rollup.html
  */
 TEST(VerificationTest, Static_IsotropicBeamRollUp) {
@@ -36,9 +36,9 @@ TEST(VerificationTest, Static_IsotropicBeamRollUp) {
 
     // Static analysis with tight convergence tolerances for benchmark accuracy
     builder.Solution()
-        .EnableStaticSolve()   // Static analysis
-        .SetTimeStep(1.)       // Step size (irrelevant for static)
-        .SetDampingFactor(1.)  // No numerical damping (ρ_∞ = 1, irrelevant for static)
+        .EnableStaticSolve()                // Static analysis
+        .SetTimeStep(1.)                    // Step size (irrelevant for static)
+        .SetDampingFactor(1.)               // No numerical damping (ρ_∞ = 1, irrelevant for static)
         .SetMaximumNonlinearIterations(15)  // Max Newton-Raphson iterations
         .SetAbsoluteErrorTolerance(1e-11)
         .SetRelativeErrorTolerance(1e-9);
@@ -126,4 +126,4 @@ TEST(VerificationTest, Static_IsotropicBeamRollUp) {
     EXPECT_NEAR(tip_node.displacement[2], 0., 1e-12);                 // Exact analytical soln: 0.
 }
 
-}  // namespace kynema::tests
+}  // namespace kynema_fmb::tests

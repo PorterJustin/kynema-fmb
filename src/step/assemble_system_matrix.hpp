@@ -10,7 +10,7 @@
 #include "solver/solver.hpp"
 #include "step_parameters.hpp"
 
-namespace kynema::step {
+namespace kynema_fmb::step {
 
 template <typename DeviceType>
 inline void AssembleSystemMatrix(
@@ -26,7 +26,8 @@ inline void AssembleSystemMatrix(
     const auto num_springs = static_cast<int>(elements.springs.num_elems);
 
     const auto vector_length = std::min(num_nodes, TeamPolicy::vector_length_max());
-    auto beams_sparse_matrix_policy = TeamPolicy(num_beams, Kokkos::AUTO(), vector_length);
+    auto beams_sparse_matrix_policy =
+        TeamPolicy(num_beams, Kokkos::AUTO(), std::max(vector_length, 1));
     auto masses_sparse_matrix_policy = TeamPolicy(num_masses, Kokkos::AUTO());
     auto springs_sparse_matrix_policy = TeamPolicy(num_springs, Kokkos::AUTO());
 
@@ -57,4 +58,4 @@ inline void AssembleSystemMatrix(
     }
 }
 
-}  // namespace kynema::step
+}  // namespace kynema_fmb::step

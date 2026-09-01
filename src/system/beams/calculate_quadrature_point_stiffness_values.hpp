@@ -13,7 +13,7 @@
 #include "interpolate_to_quadrature_point_for_stiffness.hpp"
 #include "system/masses/rotate_section_matrix.hpp"
 
-namespace kynema::beams {
+namespace kynema_fmb::beams {
 
 template <typename DeviceType>
 struct CalculateQuadraturePointStiffnessValues {
@@ -50,7 +50,7 @@ struct CalculateQuadraturePointStiffnessValues {
         using Kokkos::make_pair;
         using Kokkos::subview;
         using CopyMatrix = KokkosBatched::SerialCopy<>;
-        using CopyVector = KokkosBatched::SerialCopy<KokkosBatched::Trans::NoTranspose, 1>;
+        using CopyVector = KokkosBatched::SerialCopy<KokkosBatched::Trans::NoTranspose>;
 
         const auto r0_data = Array<double, 4>{
             qp_r0(element, qp, 0), qp_r0(element, qp, 1), qp_r0(element, qp, 2),
@@ -128,4 +128,4 @@ struct CalculateQuadraturePointStiffnessValues {
     }
 };
 
-}  // namespace kynema::beams
+}  // namespace kynema_fmb::beams

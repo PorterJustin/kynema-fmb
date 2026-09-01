@@ -6,7 +6,7 @@
 #include "beam_builder.hpp"
 #include "turbine_input.hpp"
 
-namespace kynema::interfaces::components {
+namespace kynema_fmb::interfaces::components {
 
 class Turbine;
 
@@ -185,10 +185,24 @@ public:
      */
     TurbineBuilder& SetHubWindSpeed(double speed);
 
+    /**
+     * @brief Set the restart file path
+     * @param path The path to the restart file
+     * @return Reference to the builder for method chaining
+     */
+    TurbineBuilder& SetRestartFilePath(const std::string& path);
+
+    /**
+     * @brief Set simulation start time
+     * @param time The start time of the simulation for restart
+     * @return Reference to the builder for method chaining
+     */
+    TurbineBuilder& SetStartTime(double time);
+
 private:
     TurbineInput input;                       ///< turbine configuration being built
     std::vector<BeamBuilder> blade_builders;  ///< builders for the blade components
     BeamBuilder tower_builder;                ///< builder for the tower component
 };
 
-}  // namespace kynema::interfaces::components
+}  // namespace kynema_fmb::interfaces::components

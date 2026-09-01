@@ -2,7 +2,7 @@
 
 #include "constraints/constraints.hpp"
 
-namespace kynema::interfaces {
+namespace kynema_fmb::interfaces {
 
 /**
  * @brief Host-side mirror of the constraint input, output, and loads for a given time increment
@@ -20,7 +20,7 @@ namespace kynema::interfaces {
 template <typename DeviceType>
 struct HostConstraints {
     template <typename ValueType>
-    using HostView = typename Kokkos::View<ValueType, DeviceType>::HostMirror;
+    using HostView = typename Kokkos::View<ValueType, DeviceType>::host_mirror_type;
 
     /// @brief Host local copy of current inputs
     HostView<double* [7]> input;
@@ -51,4 +51,4 @@ struct HostConstraints {
     }
 };
 
-}  // namespace kynema::interfaces
+}  // namespace kynema_fmb::interfaces

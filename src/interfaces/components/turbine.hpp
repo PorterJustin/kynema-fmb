@@ -9,11 +9,11 @@
 #include "interfaces/host_state.hpp"
 #include "interfaces/node_data.hpp"
 
-namespace kynema {
+namespace kynema_fmb {
 class Model;
 }
 
-namespace kynema::interfaces::components {
+namespace kynema_fmb::interfaces::components {
 /**
  * @brief Represents a turbine with nodes, elements, and constraints
  *
@@ -141,7 +141,7 @@ public:
     //--------------------------------------------------------------------------
 
     std::vector<double> blade_pitch_control;  //< Blade pitch angles
-    double torque_control{0.};                //< Torque control value
+    double rotor_torque_control{0.};          //< Torque control value
     double yaw_control{0.};                   //< Yaw control value
 
     /**
@@ -221,8 +221,6 @@ private:
     //--------------------------------------------------------------------------
     // Turbine inputs
     //--------------------------------------------------------------------------
-
-    TurbineInput turbine_input;  ///< Turbine input configuration
 
     /**
      * @brief Create blades from input configuration
@@ -419,4 +417,4 @@ private:
     void SetInitialRotorVelocity(const TurbineInput& input, Model& model);
 };
 
-}  // namespace kynema::interfaces::components
+}  // namespace kynema_fmb::interfaces::components

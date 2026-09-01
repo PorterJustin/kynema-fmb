@@ -23,8 +23,8 @@ bibtex_bibfiles = []
 templates_path = ['_templates'] # path relative to conf.py
 source_suffix = ['.rst']        # options ['.rst', '.md']
 main_doc = 'index'              # top-level toctree document
-project = 'Kynema'
-title = 'Kynema Documentation'
+project = 'Kynema-FMB'
+title = 'Kynema-FMB Documentation'
 copyright = '2023 - Present, MIT License'
 author = 'National Renewable Energy Laboratory (NREL) and Sandia National Laboratories (SNL)'
 
@@ -72,7 +72,7 @@ htmlhelp_basename = 'kynema_doc'  # Output file base name for HTML help builder
 # Group the document tree into LaTeX files
 latex_documents = [(
     main_doc,          # source start file
-    'kynema.tex', # target name
+    'kynema_fmb.tex', # target name
     title,             # title
     author,            # author
     'manual'           # documentclass [howto, manual, or own class]
@@ -84,7 +84,7 @@ latex_documents = [(
 # One entry per manual page
 man_pages = [(
     main_doc,          # source start file
-    'kynema',     # name
+    'kynema_fmb',     # name
     title,             # description
     [author],          # authors
     1                  # manual section
@@ -96,7 +96,7 @@ man_pages = [(
 # Grouping the document tree into Texinfo files
 texinfo_documents = [(
     main_doc,          # source start file
-    'kynema',     # name
+    'kynema_fmb',     # name
     title,             # description
     author,            # author
     project,           # project
@@ -106,5 +106,5 @@ texinfo_documents = [(
 
 def setup(app):
     app.add_object_type("input_param", "input_param",
-                       objname="Kynema input parameter",
-                       indextemplate="pair: %s; Kynema input parameter")
+                       objname="Kynema-FMB input parameter",
+                       indextemplate="pair: %s; Kynema-FMB input parameter")

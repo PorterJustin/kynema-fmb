@@ -7,9 +7,9 @@
 #include <iterator>
 #include <numbers>
 
-#include "controller_io.hpp"
+#include "interfaces/components/controller_io.hpp"
 
-namespace kynema::util {
+namespace kynema_fmb::util {
 
 extern "C" {
 
@@ -18,8 +18,8 @@ void PITCH_CONTROLLER(
 ) {
     static auto first_call = true;
     // Map swap from calling program to struct
-    ControllerIO io;
-    auto swap_array = std::array<float, kSwapArraySize>{};
+    interfaces::components::ControllerIO io;
+    auto swap_array = std::array<float, interfaces::components::kSwapArraySize>{};
     std::copy(avrSWAP, std::next(avrSWAP, 81), swap_array.begin());
     io.CopyFromSwapArray(swap_array);
 
@@ -46,4 +46,4 @@ void PITCH_CONTROLLER(
 
 }  // extern "C"
 
-}  // namespace kynema::util
+}  // namespace kynema_fmb::util

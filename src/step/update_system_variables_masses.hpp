@@ -8,7 +8,7 @@
 #include "step_parameters.hpp"
 #include "system/masses/calculate_quadrature_point_values.hpp"
 
-namespace kynema::step {
+namespace kynema_fmb::step {
 
 template <typename DeviceType>
 inline void UpdateSystemVariablesMasses(
@@ -30,4 +30,4 @@ inline void UpdateSystemVariablesMasses(
     );
 }
 
-}  // namespace kynema::step
+}  // namespace kynema_fmb::step

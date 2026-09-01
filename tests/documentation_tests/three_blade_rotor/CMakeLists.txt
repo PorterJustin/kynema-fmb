@@ -15,8 +15,10 @@ project(
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-find_package(Kynema REQUIRED)
+if(PROJECT_IS_TOP_LEVEL)
+    find_package(KynemaFMB REQUIRED)
+endif()
 
 add_executable(three_blade_rotor)
-target_link_libraries(three_blade_rotor PRIVATE Kynema::kynema_library)
+target_link_libraries(three_blade_rotor PRIVATE KynemaFMB::kynema_fmb_library)
 target_sources(three_blade_rotor PRIVATE three_blade_rotor.cpp)
