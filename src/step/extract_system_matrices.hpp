@@ -15,7 +15,7 @@
 #include "update_system_variables.hpp"
 #include "update_tangent_operator.hpp"
 
-namespace kynema {
+namespace kynema_fmb {
 
 template <typename DeviceType>
 struct SystemMatrices {

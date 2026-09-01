@@ -117,7 +117,7 @@ Clone the spack repository, load the spack environment, and let spack learn abou
     spack compiler find
     spack external find
 
-Install GoogleTest, netCDF, Suite-Sparse, and Eigen, yaml-cpp
+Install GoogleTest, netCDF, Suite-Sparse, and Eigen
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
@@ -126,7 +126,6 @@ Install GoogleTest, netCDF, Suite-Sparse, and Eigen, yaml-cpp
     spack install netcdf-c
     spack install eigen
     spack install suite-sparse
-    spack install yaml-cpp
 
 Install Kokkos and Kokkos Kernels
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -169,7 +168,6 @@ Load the TPLs into your environment
     spack load suite-sparse
     spack load netcdf-c
     spack load eigen
-    spack load yaml-cpp
     spack load kokkos
     spack load kokkos-kernels
 
