@@ -166,12 +166,14 @@ TEST_P(DynamicBeamTest, Damping) {
     eigvec *= (1.0e-3 * omega_eig / tip_amplitude);
 
     // Set initial velocity from the (scaled) mode shape. The root node stays fixed.
+    auto host_v = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, state.v);
     for (size_t i = 1; i < beam_node_ids.size(); ++i) {
-        auto node_v = Kokkos::subview(state.v, beam_node_ids[i], Kokkos::ALL);
         for (int j = 0; j < 6; ++j) {
-            node_v(j) = eigvec(static_cast<Eigen::Index>((i - 1) * 6 + j));
+            host_v(beam_node_ids[i], j) =
+                eigvec(static_cast<Eigen::Index>((i - 1) * 6 + j));
         }
     }
+    Kokkos::deep_copy(state.v, host_v);
 
     // Set num_steps to cover exactly 1.5 cycles of the natural frequency
     // note, this is with the damped natural frequency.
