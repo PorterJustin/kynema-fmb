@@ -88,7 +88,6 @@ TEST(DynamicBeamTest, SystemMatrices) {
     const size_t max_iter(5);
     const double step_size(0.001);  // seconds
     const double rho_inf(1.0);
-    const int num_steps(1000);
 
     // Create solver parameters
     auto parameters = StepParameters(is_dynamic_solve, max_iter, step_size, rho_inf);
@@ -363,7 +362,8 @@ TEST(DynamicBeamTest, StepAndSystemMatrices) {
 
     // Extract system matrices. This call should save the state and reset everything afterwards
     // so should not affect the second step.
-    auto matrices = step::ExtractSystemMatrices(parameters, solver, elements, state, constraints);
+    [[maybe_unused]] auto matrices =
+        step::ExtractSystemMatrices(parameters, solver, elements, state, constraints);
 
     // Second step
     Kokkos::deep_copy(
