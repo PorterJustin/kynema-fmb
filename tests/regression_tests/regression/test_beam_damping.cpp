@@ -169,8 +169,7 @@ TEST_P(DynamicBeamTest, Damping) {
     auto host_v = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, state.v);
     for (size_t i = 1; i < beam_node_ids.size(); ++i) {
         for (int j = 0; j < 6; ++j) {
-            host_v(beam_node_ids[i], j) =
-                eigvec(static_cast<Eigen::Index>((i - 1) * 6 + j));
+            host_v(beam_node_ids[i], j) = eigvec(static_cast<Eigen::Index>((i - 1) * 6 + j));
         }
     }
     Kokkos::deep_copy(state.v, host_v);

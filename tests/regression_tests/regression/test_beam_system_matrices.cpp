@@ -59,8 +59,6 @@ TEST(DynamicBeamTest, SystemMatrices) {
             .Build();
     });
 
-    const double scalar_mu(0.0001);  // 1/s
-
     const auto array_mu = std::array{0.0001, 0.0004, 0.0002, 0.0003, 0.0002, 0.0004};
 
     const auto quad_order = 20UL;
