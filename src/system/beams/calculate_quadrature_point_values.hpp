@@ -49,6 +49,7 @@ struct CalculateQuadraturePointValues {
     View<double** [6]> residual_vector_terms_;
     View<double*** [6][6]> system_matrix_terms_;
     bool include_stiffness_;
+    bool include_tangent_;
 
     KOKKOS_FUNCTION
     void operator()(member_type member) const {
@@ -212,7 +213,8 @@ struct CalculateQuadraturePointValues {
             stiffness_matrix_terms,
             inertia_matrix_terms,
             system_matrix_terms_,
-            include_stiffness_
+            include_stiffness_,
+            include_tangent_
         };
         parallel_for(node_squared_range, system_matrix_calculator);
     }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <KokkosBlas.hpp>
 #include <Kokkos_Core.hpp>
 
 #include "system/masses/calculate_gravity_force.hpp"
@@ -36,6 +37,7 @@ struct CalculateQuadraturePointValues {
     View<double* [6]> residual_vector_terms;
     View<double* [6][6]> system_matrix_terms;
     bool include_stiffness;
+    bool include_tangent;
 
     KOKKOS_FUNCTION
     void operator()(size_t element) const {
@@ -145,7 +147,11 @@ struct CalculateQuadraturePointValues {
             }
 
             if (include_stiffness) {
-                Gemm::invoke(1., Kuu, T, 1., STpI);
+                if (include_tangent) {
+                    Gemm::invoke(1., Kuu, T, 1., STpI);
+                } else {
+                    KokkosBlas::serial_axpy(1., Kuu, STpI);
+                }
             }
 
             CopyMatrix::invoke(

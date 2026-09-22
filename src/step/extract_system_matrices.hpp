@@ -53,7 +53,6 @@ inline SystemMatrices<DeviceType> ExtractSystemMatrices(
 
     // Tangent depends only on state and base parameters — compute once
     auto params_for_tangent = base_parameters;
-    params_for_tangent.h = 0.0;  // effectively turn off the tangent operator
     step::UpdateTangentOperator(params_for_tangent, state);
 
     // --- Mass pass ---
@@ -81,6 +80,7 @@ inline SystemMatrices<DeviceType> ExtractSystemMatrices(
         params.gamma_prime = 0.0;
         params.conditioner = 1.0;
         params.include_stiffness = true;
+        params.include_tangent = false;
 
         step::ResetSolver(solver);
         step::UpdateSystemVariables(params, elements, state);
@@ -109,8 +109,10 @@ inline SystemMatrices<DeviceType> ExtractSystemMatrices(
 
     // --- Constraint pass ---
     {
+        bool include_tangent{false};    //< post multiply by tangent operator in system matrix
+
         step::ResetSolver(solver);
-        step::UpdateConstraintVariables(state, constraints);
+        step::UpdateConstraintVariables(state, constraints, include_tangent);
         step::AssembleConstraintsMatrix(solver, constraints);
 
         result.constraint_matrix_values = ValuesType("constraint_values", num_values);
