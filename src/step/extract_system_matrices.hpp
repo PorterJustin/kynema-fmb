@@ -125,6 +125,11 @@ inline SystemMatrices<DeviceType> ExtractSystemMatrices(
         auto params = base_parameters;
         step::ResetSolver(solver);
         step::UpdateSystemVariables(params, elements, state);
+
+        // Likely do not need this, but for consistency in having all
+        // updates again in the reset.
+        step::UpdateTangentOperator(params, state);
+
         step::AssembleSystemMatrix(params, solver, elements);
     }
 
