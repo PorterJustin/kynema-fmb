@@ -109,7 +109,7 @@ inline SystemMatrices<DeviceType> ExtractSystemMatrices(
 
     // --- Constraint pass ---
     {
-        bool include_tangent{false};    //< post multiply by tangent operator in system matrix
+        bool include_tangent{false};  //< post multiply by tangent operator in system matrix
 
         step::ResetSolver(solver);
         step::UpdateConstraintVariables(state, constraints, include_tangent);

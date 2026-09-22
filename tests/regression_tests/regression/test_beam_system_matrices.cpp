@@ -382,7 +382,7 @@ TEST(DynamicBeamTest, StepAndSystemMatrices) {
 TEST(DynamicBeamTest, ExtractSystemMatricesUninitializedQDelta) {
     // Verify worst case of state.q_delta as inf does not break
     // computations of system matrices.
-    
+
     const double length(10.0);
 
     // Mass matrix for uniform composite beam section
@@ -468,7 +468,8 @@ TEST(DynamicBeamTest, ExtractSystemMatricesUninitializedQDelta) {
 
     // Baseline extraction with q_delta explicitly zeroed
     Kokkos::deep_copy(state.q_delta, 0.);
-    const auto baseline = step::ExtractSystemMatrices(parameters, solver, elements, state, constraints);
+    const auto baseline =
+        step::ExtractSystemMatrices(parameters, solver, elements, state, constraints);
     const auto base_mass = to_host(baseline.mass_matrix_values);
     const auto base_stiff = to_host(baseline.stiffness_matrix_values);
     const auto base_damp = to_host(baseline.damping_matrix_values);
@@ -482,7 +483,8 @@ TEST(DynamicBeamTest, ExtractSystemMatricesUninitializedQDelta) {
         }
     }
     Kokkos::deep_copy(state.q_delta, q_delta_host);
-    const auto poisoned = step::ExtractSystemMatrices(parameters, solver, elements, state, constraints);
+    const auto poisoned =
+        step::ExtractSystemMatrices(parameters, solver, elements, state, constraints);
     const auto pois_mass = to_host(poisoned.mass_matrix_values);
     const auto pois_stiff = to_host(poisoned.stiffness_matrix_values);
     const auto pois_damp = to_host(poisoned.damping_matrix_values);
@@ -499,7 +501,6 @@ TEST(DynamicBeamTest, ExtractSystemMatricesUninitializedQDelta) {
         ASSERT_DOUBLE_EQ(base_damp[i], pois_damp[i]);
         ASSERT_DOUBLE_EQ(base_constraint[i], pois_constraint[i]);
     }
-
 }
 
 }  // namespace kynema_fmb::tests
