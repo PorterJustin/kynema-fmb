@@ -3,6 +3,7 @@
 #include <fstream>
 #include <initializer_list>
 #include <iostream>
+#include <limits>
 #include <numeric>
 #include <vector>
 
@@ -376,6 +377,129 @@ TEST(DynamicBeamTest, StepAndSystemMatrices) {
         Kokkos::deep_copy(result, Kokkos::subview(state.q, 4, Kokkos::make_pair(0, 3)));
         expect_kokkos_view_1D_equal(result, {-1.00926258E-06, -7.91711079E-07, 2.65017558E-03});
     }
+}
+
+TEST(DynamicBeamTest, ExtractSystemMatricesUninitializedQDelta) {
+    // Verify worst case of state.q_delta as inf does not break
+    // computations of system matrices.
+    
+    const double length(10.0);
+
+    // Mass matrix for uniform composite beam section
+    constexpr auto mass_matrix = std::array{
+        std::array{8.538e-2, 0., 0., 0., 0., 0.},   std::array{0., 8.538e-2, 0., 0., 0., 0.},
+        std::array{0., 0., 8.538e-2, 0., 0., 0.},   std::array{0., 0., 0., 1.4433e-2, 0., 0.},
+        std::array{0., 0., 0., 0., 0.40972e-2, 0.}, std::array{0., 0., 0., 0., 0., 1.0336e-2},
+    };
+
+    // Stiffness matrix for uniform composite beam section
+    // Diagonal with high shear stiffness to match Euler-Bernoulli Theory
+    constexpr auto stiffness_matrix = std::array{
+        std::array{1368.17e3, 0., 0., 0., 0., 0.},     std::array{0., 88.56e3 * 1e9, 0., 0., 0., 0.},
+        std::array{0., 0., 38.78e3 * 1e9, 0., 0., 0.}, std::array{0., 0., 0., 16.9600e3, 0., 0.},
+        std::array{0., 0., 0., 0., 59.1200e3, 0.},     std::array{0., 0., 0., 0., 0., 141.470e3},
+    };
+
+    // Node locations (GLL quadrature)
+    const auto num_nodes = 5UL;
+    const auto gll_locations = math::GetGllLocations(num_nodes - 1);
+    std::vector<double> node_s(gll_locations.size());
+    std::ranges::transform(gll_locations, node_s.begin(), [](auto xi) {
+        return 0.5 * (xi + 1.0);
+    });
+
+    // Create model for managing nodes and constraints
+    auto model = Model();
+
+    // Set gravity in model
+    model.SetGravity(0., 0., 0.);
+
+    // Build vector of nodes (straight along x axis, no rotation)
+    std::vector<size_t> beam_node_ids;
+    std::ranges::transform(node_s, std::back_inserter(beam_node_ids), [&](auto s) {
+        return model.AddNode()
+            .SetElemLocation(s)
+            .SetPosition(10 * s, 0., 0., 1., 0., 0., 0.)
+            .Build();
+    });
+
+    const auto array_mu = std::array{0.0001, 0.0004, 0.0002, 0.0003, 0.0002, 0.0004};  // 1/s
+
+    const auto quad_order = 7UL;
+    const auto gl_locations = math::GetGlLocations(quad_order);
+    const auto gl_weights = math::GetGlWeights(quad_order);
+
+    std::vector<std::array<double, 2>> quad_points(gl_locations.size());
+    for (size_t i = 0; i < gl_locations.size(); ++i) {
+        quad_points[i] = {gl_locations[i], gl_weights[i]};
+    }
+
+    // Add beam element
+    model.AddBeamElement(
+        beam_node_ids,
+        std::array{
+            BeamSection(0., mass_matrix, stiffness_matrix),
+            BeamSection(1., mass_matrix, stiffness_matrix),
+        },
+        quad_points, array_mu
+    );
+
+    // Fix first node position
+    model.AddFixedBC(beam_node_ids[0]);
+
+    // Solution parameters
+    const bool is_dynamic_solve(true);
+    const size_t max_iter(5);
+    const double step_size(0.0001);
+    const double rho_inf(1.0);
+
+    // Create solver parameters (step_size is updated after the eigenanalysis).
+    auto parameters = StepParameters(is_dynamic_solve, max_iter, step_size, rho_inf);
+
+    // Create solver, elements, constraints, and state
+    auto [state, elements, constraints] = model.CreateSystem();
+    auto solver = CreateSolver<>(state, elements, constraints);
+
+    // Copy an extracted values view into a host vector for comparison
+    const auto to_host = [](const auto& values) {
+        const auto host = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, values);
+        return std::vector<double>(host.data(), host.data() + host.extent(0));
+    };
+
+    // Baseline extraction with q_delta explicitly zeroed
+    Kokkos::deep_copy(state.q_delta, 0.);
+    const auto baseline = step::ExtractSystemMatrices(parameters, solver, elements, state, constraints);
+    const auto base_mass = to_host(baseline.mass_matrix_values);
+    const auto base_stiff = to_host(baseline.stiffness_matrix_values);
+    const auto base_damp = to_host(baseline.damping_matrix_values);
+    const auto base_constraint = to_host(baseline.constraint_matrix_values);
+
+    // Poison q_delta with Inf to mimic worst-case uninitialized memory.
+    auto q_delta_host = Kokkos::create_mirror_view(state.q_delta);
+    for (size_t i = 0; i < state.num_system_nodes; ++i) {
+        for (int j = 0; j < 6; ++j) {
+            q_delta_host(i, j) = std::numeric_limits<double>::infinity();
+        }
+    }
+    Kokkos::deep_copy(state.q_delta, q_delta_host);
+    const auto poisoned = step::ExtractSystemMatrices(parameters, solver, elements, state, constraints);
+    const auto pois_mass = to_host(poisoned.mass_matrix_values);
+    const auto pois_stiff = to_host(poisoned.stiffness_matrix_values);
+    const auto pois_damp = to_host(poisoned.damping_matrix_values);
+    const auto pois_constraint = to_host(poisoned.constraint_matrix_values);
+
+    // The extracted matrices must be identical regardless of q_delta contents
+    ASSERT_EQ(base_mass.size(), pois_mass.size());
+    for (size_t i = 0; i < base_mass.size(); ++i) {
+        // All of the matrices have the same sparse mapping structure
+        // because that is initialized at the system level even if these
+        // have some zeros in extra entries.
+        ASSERT_DOUBLE_EQ(base_mass[i], pois_mass[i]);
+        ASSERT_DOUBLE_EQ(base_stiff[i], pois_stiff[i]);
+        ASSERT_DOUBLE_EQ(base_damp[i], pois_damp[i]);
+        ASSERT_DOUBLE_EQ(base_constraint[i], pois_constraint[i]);
+    }
+
 }
 
 }  // namespace kynema_fmb::tests
