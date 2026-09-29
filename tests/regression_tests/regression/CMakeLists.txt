@@ -2,6 +2,7 @@
 target_sources(
     kynema_fmb_regression_tests
     PRIVATE
+    test_beam_point_mapping.cpp
     test_beams.cpp
     test_cantilever_beam.cpp
     test_controller.cpp
