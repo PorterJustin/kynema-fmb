@@ -5,13 +5,13 @@ should be moved to have a consistent mapping to a deformed beam.
 Steps:
     1. A beam should be defined with a fixed node at the origin and an
     initial orientation with a non-trivial quaternion.
-    2. A second beam of should be defined at a new rotation and with the base be fixed
+    2. A second beam should be defined at a new rotation and with the base fixed
     to the tip node of the first beam (all 6-DOFs constrained or reuse the same node).
     3. An initial static solve should be performed to verify no deformation.
     4. A moment vector with all three components should be applied to the tip node of
     the first beam and the static problem resolved.
     5. Verify that the new tip node of the second beam is combination of translation of
-    tip node of first beam plus a rotation of the inition position vector by solely
+    tip node of first beam plus a rotation of the initial position vector by solely
     the displacement quaternion of the tip node of the first beam.
 */
 
@@ -141,7 +141,9 @@ TEST(BeamPointMappingTest, RigidFollowerBeam) {
     auto [state, elements, constraints, solver] = model.CreateSystemWithSolver<DeviceType>();
 
     // Step 3: Initial static solve with no applied loads should produce no deformation
-    ASSERT_TRUE(Step(parameters, solver, elements, state, constraints));
+    auto converged = Step(parameters, solver, elements, state, constraints);
+    ASSERT_TRUE(converged);
+
     {
         auto q_host = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), state.q);
         for (const auto node_id : {beam1_tip_id, beam2_tip_id}) {
@@ -165,7 +167,21 @@ TEST(BeamPointMappingTest, RigidFollowerBeam) {
         host_f(beam1_tip_id, 5) = 3.e3;
         Kokkos::deep_copy(state.f, host_f);
     }
-    ASSERT_TRUE(Step(parameters, solver, elements, state, constraints));
+
+    converged = Step(parameters, solver, elements, state, constraints);
+    ASSERT_TRUE(converged);
+    {
+        // Verify that there are real displacements and rotations relative to the start
+        const auto q_host = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), state.q);
+        ASSERT_GT(
+            std::hypot(q_host(beam1_tip_id, 0), q_host(beam1_tip_id, 1), q_host(beam1_tip_id, 2)),
+            1.e-4
+        );
+        ASSERT_GT(
+            std::hypot(q_host(beam1_tip_id, 4), q_host(beam1_tip_id, 5), q_host(beam1_tip_id, 6)),
+            1.e-4
+        );
+    }
 
     // Step 5: The deformed tip of the second beam should equal the deformed tip of the first
     // beam translated, plus the initial relative position vector rotated by only the
