@@ -243,8 +243,8 @@ TEST_P(DynamicBeamTest, Damping) {
 INSTANTIATE_TEST_SUITE_P(
     ModeIndices, DynamicBeamTest,
     ::testing::Values(0U, 1U, 2U, 3U, 4U, 8U),  // 3U is torsion, 8U is axial
-    [](const ::testing::TestParamInfo<DynamicBeamTest::ParamType>& info) {
-        return "mode" + std::to_string(info.param);
+    [](const ::testing::TestParamInfo<DynamicBeamTest::ParamType>& param_info) {
+        return "mode" + std::to_string(param_info.param);
     }
 );
 
