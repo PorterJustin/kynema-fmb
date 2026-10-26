@@ -27,6 +27,7 @@
 #include "update_state_prediction.hpp"
 #include "update_system_variables.hpp"
 #include "update_tangent_operator.hpp"
+#include "extract_system_matrices.hpp"
 
 namespace kynema_fmb {
 
