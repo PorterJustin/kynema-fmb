@@ -17,6 +17,7 @@ target_sources(
     test_netcdf_outputs_writer.cpp
     test_beam_damping.cpp
     test_beam_system_matrices.cpp
+    test_beam_gravity.cpp
 )
 
 add_subdirectory(verification)
