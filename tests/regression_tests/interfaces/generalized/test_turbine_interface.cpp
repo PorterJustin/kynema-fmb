@@ -20,7 +20,7 @@ This is intended to exactly recreate 'test_turbine_controller_interface.cpp'
 */
 TEST(GeneralizedInterface, TurbineStructureController) {
     const YAML::Node input_yaml =
-        YAML::LoadFile("interfaces_test_files/general_interface_turbine_inputs.yaml");
+        YAML::LoadFile("generalized_test_files/general_turbine_inputs.yaml");
 
     const auto angular_speed = input_yaml["components"][0]["turbine"]["angular_speed"].as<double>();
     const auto duration =

@@ -3,6 +3,7 @@ target_sources(
     kynema_fmb_regression_tests
     PRIVATE
     test_6dof_interface.cpp
+    test_turbine_interface.cpp
 )
 
 add_custom_target(
