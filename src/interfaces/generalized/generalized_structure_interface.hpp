@@ -39,6 +39,7 @@ public:
 
     ~GeneralStructureInterface() = default;
 
+
     /*
     1. `initialize_module`
     2. `initialize_stage1` - have multiple extra stages based on information sharing at init.
@@ -49,15 +50,20 @@ public:
     */
 
 private:
-    // Model model;                    ///< Kynema-FMB class for model construction
-    // State<DeviceType> state;        ///< Kynema-FMB class for storing system state
-    // Elements<DeviceType> elements;  ///< Kynema-FMB class for model elements (beams, masses, springs)
-    // Constraints<DeviceType> constraints;       ///< Kynema-FMB class for constraints tying elements together
-    // StepParameters parameters;         ///< Kynema-FMB class containing solution parameters
-    // Solver<DeviceType> solver;         ///< Kynema-FMB class for solving the dynamic system
-    // State<DeviceType> state_save;      ///< Kynema-FMB class state class for temporarily saving state
-    // HostState<DeviceType> host_state;  ///< Host local copy of node state data
-    // HostConstraints<DeviceType> host_constraints;        ///< Host local copy of constraint data
+    Model model;                    ///< Kynema-FMB class for model construction
+    State<DeviceType> state;        ///< Kynema-FMB class for storing system state
+    Elements<DeviceType> elements;  ///< Kynema-FMB class for model elements (beams, masses, springs)
+    Constraints<DeviceType> constraints;       ///< Kynema-FMB class for constraints tying elements together
+    StepParameters parameters;         ///< Kynema-FMB class containing solution parameters
+    Solver<DeviceType> solver;         ///< Kynema-FMB class for solving the dynamic system
+    State<DeviceType> state_save;      ///< Kynema-FMB class state class for temporarily saving state
+    HostState<DeviceType> host_state;  ///< Host local copy of node state data
+    HostConstraints<DeviceType> host_constraints;        ///< Host local copy of constraint data
+
+    static Model BuildModel(Model model, const YAML::Node& structural_description);
+
+    static void AddTurbine(Model& model, const YAML::Node& turbine_description);
+    static void Add6DOF(Model& model, const YAML::Node& turbine_description);
 };
 
 }

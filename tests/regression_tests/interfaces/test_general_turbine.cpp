@@ -26,7 +26,7 @@ TEST(GeneralizedInterface, TurbineStructureController) {
     const auto duration =
         input_yaml["simulation"]["duration"].as<double>();  // Simulation duration in seconds
     const auto time_step =
-        input_yaml["simulation"]["time_step"].as<double>();  // Time step for the simulation
+        input_yaml["simulation"]["step_size"].as<double>();  // Time step for the simulation
     const auto write_output{false};                          // Write output file
 
     auto structure_interface = interfaces::GeneralStructureInterface(input_yaml);
