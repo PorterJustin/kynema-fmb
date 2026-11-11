@@ -1,9 +1,8 @@
 simulation:
   duration: 0.07947019876630465
-  step_size: 0.01
+  step_size: 0.125
   n_steps: 7
   is_dynamic_solve: true
-  damping_factor: 0.0
   gravity:
   - 0.0
   - 0.0
@@ -14,3 +13,14 @@ simulation:
   rho_inf : 1.0
 components:
 - type: 6dof
+  x0 : [0., 0., 0.]
+  x_dot0 : [0., 0., 0.]
+  x_ddot0 : [0., 0., 0.]
+  omega0 : [0., 0., 0.]
+  omega_dot0 : [0., 0., 0.]
+  mass : 5.0
+  inertia : [0.2, 0, 0, 0, 0.47, 0, 0, 0, 0.24]
+  springs : 
+  - k : 100. # N/m
+    fixed_point : [0., 0., 1.0]
+    l0 : 1.0 # m, initial length

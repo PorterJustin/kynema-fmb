@@ -23,6 +23,9 @@ public:
     using DeviceType =
         Kokkos::Device<Kokkos::DefaultExecutionSpace, Kokkos::DefaultExecutionSpace::memory_space>;
 
+    template <typename ValueType>
+    using HostView = typename Kokkos::View<ValueType, DeviceType>::host_mirror_type;
+
     /**
      * @brief Constructs a GeneralStructureInterface from a yaml description
      * @param structural_description Configuration parameters for the structure
@@ -39,6 +42,35 @@ public:
 
     ~GeneralStructureInterface() = default;
 
+    /**
+     * @brief Predict the inputs to the model at time n+1 from stored data.
+     */
+    void predict_inputs();
+
+    /**
+     * @brief Solve for the response at time n+1
+     */
+    void advance_states();
+
+    /**
+     * @brief Get actual values for inputs at time n+1
+     *
+     * TODO: this should receive a JSON
+     * TODO: This may also need to get prescribed displacements
+     */
+    void receive_inputs(HostView<double* [6]> forces);
+
+    /**
+     * @brief Returns the entire state structures of outputs
+     * TODO: should be updated to JSON in future.
+     */
+    HostState<DeviceType>& calculate_outputs();
+
+    /**
+     * @brief Finalize the stored data for the time step and shift time step index.
+     */
+    void finalize_time_step();
+
 
     /*
     1. `initialize_module`
@@ -47,20 +79,26 @@ public:
     4. `advance_states`
     5. `calculate_outputs`
     6. `finalize_time_step`
+
+    TODO: Need a receive_inputs()
     */
 
 private:
+    template <typename ValueType>
+    using View = Kokkos::View<ValueType, DeviceType>;
+
     Model model;                    ///< Kynema-FMB class for model construction
-    State<DeviceType> state;        ///< Kynema-FMB class for storing system state
+    State<DeviceType> state;        ///< Kynema-FMB class for storing system state (solved for n+1)
     Elements<DeviceType> elements;  ///< Kynema-FMB class for model elements (beams, masses, springs)
     Constraints<DeviceType> constraints;       ///< Kynema-FMB class for constraints tying elements together
     StepParameters parameters;         ///< Kynema-FMB class containing solution parameters
     Solver<DeviceType> solver;         ///< Kynema-FMB class for solving the dynamic system
-    State<DeviceType> state_save;      ///< Kynema-FMB class state class for temporarily saving state
+    State<DeviceType> state_n;      ///< Kynema-FMB class state for storing data at time n
+    View<double* [6]> f_nm1;           //< External forces at time n-1
     HostState<DeviceType> host_state;  ///< Host local copy of node state data
     HostConstraints<DeviceType> host_constraints;        ///< Host local copy of constraint data
 
-    static Model BuildModel(Model model, const YAML::Node& structural_description);
+    static Model BuildModel(const YAML::Node& structural_description);
 
     static void AddTurbine(Model& model, const YAML::Node& turbine_description);
     static void Add6DOF(Model& model, const YAML::Node& turbine_description);

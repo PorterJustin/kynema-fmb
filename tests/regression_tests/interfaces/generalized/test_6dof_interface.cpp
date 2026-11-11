@@ -1,4 +1,5 @@
 #include <array>
+#include <fstream>
 #include <numbers>
 #include <ranges>
 
@@ -23,9 +24,56 @@ TEST(GeneralizedInterface, DOF6) {
         input_yaml["simulation"]["duration"].as<double>();  // Simulation duration in seconds
     const auto time_step =
         input_yaml["simulation"]["step_size"].as<double>();  // Time step for the simulation
-    const auto write_output{false};                          // Write output file
+    const auto write_output{true};                           // Write output file
 
     auto structure_interface = interfaces::GeneralStructureInterface(input_yaml);
+
+    const int num_steps(40);
+
+    // Open a CSV to record the first row of host_state.x (node 0) at each time step
+    std::ofstream x_output;
+    if (write_output) {
+        x_output.open("general_6dof_host_state_x.csv");
+        x_output << std::scientific;
+        x_output << "time_step,x,y,z,qw,qx,qy,qz\n";
+    }
+
+    // Right now, I just know that there are 2 nodes because the 6 dof gets a node
+    // and then each spring gets an additional node for the fixed end of the spring.
+    // This should probably be passed out from the initialization at some point.
+    auto forces = interfaces::GeneralStructureInterface::HostView<double* [6]>("forces", 2);
+
+    for (auto i : std::views::iota(0, num_steps)) {
+
+        structure_interface.predict_inputs();
+
+        structure_interface.advance_states();
+
+        if (i > 20){
+            // Put a vertical force on the mass.
+            forces(0, 2) = 50.;
+        }
+
+        structure_interface.receive_inputs(forces);
+
+        // calling a second advance states recalculates n+1, but starts again from n
+        structure_interface.advance_states();
+
+        auto host_state = structure_interface.calculate_outputs();
+
+        structure_interface.finalize_time_step();
+
+        // Write out the first row of host_state.x at each time step to a csv.
+        if (write_output) {
+            x_output << i;
+            for (auto component = 0UL; component < host_state.x.extent(1); ++component) {
+                x_output << "," << host_state.x(0, component);
+            }
+            x_output << "\n";
+        }
+
+    }
+
 }
 
 }  // namespace kynema_fmb::tests
