@@ -53,6 +53,13 @@ public:
     void predict_inputs();
 
     /**
+     * @brief Reset the state to the previous saved time.
+     * If there is no substepping, this is just time n
+     * If there is substepping, this is to the start of the largest time step.
+     */
+    void reset_states();
+
+    /**
      * @brief Solve for the response at time n+1
      */
     void advance_states();
@@ -66,10 +73,18 @@ public:
     void receive_inputs(HostView<double* [6]> forces);
 
     /**
-     * @brief Returns the entire state structures of outputs
+     * @brief Consolidates outputs from structure.
+     * TODO: This should probably create the JSON in the future.
+     * This exists because this is computationally intensive for the CFD even if
+     * it may not do much on the structure side.
+     */
+    void calculate_outputs();
+
+    /**
+     * @brief Returns the entire outputs.
      * TODO: should be updated to JSON in future.
      */
-    HostState<DeviceType>& calculate_outputs();
+    HostState<DeviceType>& get_outputs();
 
     /**
      * @brief Finalize the stored data for the time step and shift time step index.

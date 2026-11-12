@@ -31,7 +31,15 @@ GeneralStructureInterface::GeneralStructureInterface(
     Kokkos::deep_copy(this->f_nm1, this->state_n.f);
     this->host_state.CopyFromState(this->state);
 
-    // TODO : step parameters may take inputs of atol and rtol.
+    // Update atol and rtol if provided.
+    if (structural_description["simulation"]["absolute_convergence_tol"]){
+        this->parameters.absolute_convergence_tol
+            = structural_description["simulation"]["absolute_convergence_tol"].as<double>();
+    }
+    if (structural_description["simulation"]["relative_convergence_tol"]){
+        this->parameters.relative_convergence_tol
+            = structural_description["simulation"]["relative_convergence_tol"].as<double>();
+    }
 
 }
 
@@ -68,8 +76,7 @@ void GeneralStructureInterface::receive_inputs(HostView<double* [6]> forces){
     Kokkos::deep_copy(this->state.f, forces);
 }
 
-
-void GeneralStructureInterface::advance_states(){
+void GeneralStructureInterface::reset_states(){
     // Back-up the forces at time n+1
     auto fnp1_temp = Kokkos::View<double* [6], DeviceType>(
     Kokkos::view_alloc("fnp1_temp", Kokkos::WithoutInitializing), this->state.f.extent(0));
@@ -81,6 +88,9 @@ void GeneralStructureInterface::advance_states(){
     // Copy forces back to state
     auto f     = this->state.f;
     Kokkos::deep_copy(f, fnp1_temp);
+}
+
+void GeneralStructureInterface::advance_states(){
 
     auto converged = Step(this->parameters,
                           this->solver,
@@ -91,8 +101,11 @@ void GeneralStructureInterface::advance_states(){
     // TODO : Throw an error if not converged?
 }
 
-HostState<DeviceType>& GeneralStructureInterface::calculate_outputs(){
+void GeneralStructureInterface::calculate_outputs(){
     this->host_state.CopyFromState(this->state);
+}
+
+HostState<DeviceType>& GeneralStructureInterface::get_outputs(){
     return this->host_state;
 }
 

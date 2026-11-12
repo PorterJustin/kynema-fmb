@@ -49,6 +49,8 @@ TEST(GeneralizedInterface, DOF6) {
     // This should probably be passed out from the initialization at some point.
     auto forces = interfaces::GeneralStructureInterface::HostView<double* [6]>("forces", num_nodes);
 
+    // TODO : Response looks a bit funny on this, maybe some steps aren't converging?
+
     for (auto i : std::views::iota(0, num_steps)) {
 
         structure_interface.predict_inputs();
@@ -62,10 +64,13 @@ TEST(GeneralizedInterface, DOF6) {
 
         structure_interface.receive_inputs(forces);
 
-        // calling a second advance states recalculates n+1, but starts again from n
+        // calling a second advance states recalculates n+1, but start again from n
+        // These two steps mimic what would happen with nonlinear outer iterations.
+        structure_interface.reset_states();
         structure_interface.advance_states();
 
-        auto host_state = structure_interface.calculate_outputs();
+        structure_interface.calculate_outputs();
+        auto host_state = structure_interface.get_outputs();
 
         structure_interface.finalize_time_step();
 
