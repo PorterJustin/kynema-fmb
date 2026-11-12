@@ -38,10 +38,16 @@ TEST(GeneralizedInterface, DOF6) {
         x_output << "time_step,x,y,z,qw,qx,qy,qz\n";
     }
 
+    YAML::Node fmb_model_description = structure_interface.initialize_module();
+
+
+    auto num_nodes = fmb_model_description["model"]["num_nodes"].as<size_t>();
+    auto mass_node_id = fmb_model_description["components"][0]["mass_node_id"].as<size_t>();
+
     // Right now, I just know that there are 2 nodes because the 6 dof gets a node
     // and then each spring gets an additional node for the fixed end of the spring.
     // This should probably be passed out from the initialization at some point.
-    auto forces = interfaces::GeneralStructureInterface::HostView<double* [6]>("forces", 2);
+    auto forces = interfaces::GeneralStructureInterface::HostView<double* [6]>("forces", num_nodes);
 
     for (auto i : std::views::iota(0, num_steps)) {
 
@@ -51,7 +57,7 @@ TEST(GeneralizedInterface, DOF6) {
 
         if (i > 20){
             // Put a vertical force on the mass.
-            forces(0, 2) = 50.;
+            forces(mass_node_id, 2) = 50.;
         }
 
         structure_interface.receive_inputs(forces);

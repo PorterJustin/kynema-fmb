@@ -11,7 +11,7 @@ using DeviceType =
 
 GeneralStructureInterface::GeneralStructureInterface(
     const YAML::Node& structural_description):
-    model(BuildModel(structural_description)),
+    model(BuildModel(structural_description, model_description)),
     state(model.CreateState<DeviceType>()),
     elements(model.CreateElements<DeviceType>()),
     constraints(model.CreateConstraints<DeviceType>()),
@@ -39,6 +39,9 @@ GeneralStructureInterface::GeneralStructureInterface(
 // Generalized API Functions
 //--------------------------------------------------------------------------
 
+YAML::Node GeneralStructureInterface::initialize_module(){
+    return YAML::Clone(this->model_description);
+}
 
 void GeneralStructureInterface::predict_inputs(){
     using RangePolicy = Kokkos::RangePolicy<typename DeviceType::execution_space>;
@@ -109,7 +112,8 @@ void GeneralStructureInterface::finalize_time_step(){
 //--------------------------------------------------------------------------
 
 Model GeneralStructureInterface::BuildModel(
-    const YAML::Node& structural_description
+    const YAML::Node& structural_description,
+    YAML::Node& model_description
 ) {
     // High level global parameters
     auto gravity = structural_description["simulation"]["gravity"].as<std::array<double, 3>>();
@@ -122,6 +126,9 @@ Model GeneralStructureInterface::BuildModel(
         throw std::runtime_error("No structural components in input.");
     }
 
+    // Append a new empty entry to the components sequence
+    YAML::Node components_out = model_description["components"];
+    
     // Add individual structural components to the model
     for (const auto& item : components)
     {
@@ -131,12 +138,22 @@ Model GeneralStructureInterface::BuildModel(
         }
         else if (type == "6dof")
         {
-            Add6DOF(model, item);
+            // Add an entry to the output structure description
+            components_out.push_back(YAML::Node());
+
+            // Get the entry to add details to.
+            YAML::Node output_description = components_out[components_out.size() - 1];
+
+            output_description["type"] = "6dof";
+
+            Add6DOF(model, item, output_description);
         }
         else {
             throw std::runtime_error("Unknown component type: " + type);
         }
     }
+
+    model_description["model"]["num_nodes"] = model.NumNodes();
 
     return model;
 }
@@ -148,7 +165,9 @@ void GeneralStructureInterface::AddTurbine(
 }
 
 
-void GeneralStructureInterface::Add6DOF(Model& model, const YAML::Node& dof6_description) {
+void GeneralStructureInterface::Add6DOF(Model& model,
+            const YAML::Node& dof6_description,
+            YAML::Node& output_description) {
     /* Add a 6DOF mass, this is currently just a rough sketch,
     these values should come from the yaml node */
 
@@ -169,6 +188,8 @@ void GeneralStructureInterface::Add6DOF(Model& model, const YAML::Node& dof6_des
                 x_ddot0[0], x_ddot0[1], x_ddot0[2], omega_dot0[0], omega_dot0[1], omega_dot0[2]
             )
             .Build();
+
+    output_description["mass_node_id"] = mass_node_id;
 
     // Add masses element with m and J as mass matrix
     model.AddMassElement(

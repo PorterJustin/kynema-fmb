@@ -43,6 +43,11 @@ public:
     ~GeneralStructureInterface() = default;
 
     /**
+     * @brief Do any additional initialization and return a yaml of node ids etc.
+     */
+    YAML::Node initialize_module();
+
+    /**
      * @brief Predict the inputs to the model at time n+1 from stored data.
      */
     void predict_inputs();
@@ -87,6 +92,7 @@ private:
     template <typename ValueType>
     using View = Kokkos::View<ValueType, DeviceType>;
 
+    YAML::Node model_description;
     Model model;                    ///< Kynema-FMB class for model construction
     State<DeviceType> state;        ///< Kynema-FMB class for storing system state (solved for n+1)
     Elements<DeviceType> elements;  ///< Kynema-FMB class for model elements (beams, masses, springs)
@@ -98,10 +104,18 @@ private:
     HostState<DeviceType> host_state;  ///< Host local copy of node state data
     HostConstraints<DeviceType> host_constraints;        ///< Host local copy of constraint data
 
-    static Model BuildModel(const YAML::Node& structural_description);
+    /**
+     @brief Initializes everything for FMB
+     @param structural_description Configuration parameters for the structure
+     @param model_description Summary of information and indices of as built model
+     */
+    static Model BuildModel(const YAML::Node& structural_description,
+                            YAML::Node& model_description);
 
     static void AddTurbine(Model& model, const YAML::Node& turbine_description);
-    static void Add6DOF(Model& model, const YAML::Node& turbine_description);
+    static void Add6DOF(Model& model,
+                        const YAML::Node& dof6_description, 
+                        YAML::Node& output_description);
 };
 
 }
