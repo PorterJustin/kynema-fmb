@@ -127,7 +127,10 @@ private:
     static Model BuildModel(const YAML::Node& structural_description,
                             YAML::Node& model_description);
 
-    static void AddTurbine(Model& model, const YAML::Node& turbine_description);
+    static void AddTurbine(Model& model,
+                            const YAML::Node& turbine_description, 
+                            YAML::Node& output_description);
+
     static void Add6DOF(Model& model,
                         const YAML::Node& dof6_description, 
                         YAML::Node& output_description);

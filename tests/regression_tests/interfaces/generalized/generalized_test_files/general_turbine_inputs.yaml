@@ -14,7 +14,6 @@ simulation:
 components:
 - type: turbine
   windio_file: interfaces_test_files/IEA-15-240-RWT.yaml
-  n_blades: 3
   outputs:
     write_output: false
     output_file_path: GeneralizedInterface.TurbineStructureController
@@ -22,12 +21,11 @@ components:
     angular_speed: 0.79063415025
     azimuth_angle: 0.0
     rotor_apex_to_hub: 0.0
-  blade:
-    n_blade_nodes: 11
+  blades:
+    n_blades: 3
     element_order: 10
     prescribed_root_motion: false
   tower:
-    n_tower_nodes: 11
     element_order: 10
     prescribed_root_motion: false
     base_orientation:
