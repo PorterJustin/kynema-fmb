@@ -7,7 +7,7 @@ simulation:
   - 0.0
   - 0.0
   - -9.81
-  max_nonlinear_iterations: 6
+  max_nonlinear_iterations: 10
   absolute_convergence_tol: 1.0e-06
   relative_convergence_tol: 0.0001
   rho_inf : 0.9
