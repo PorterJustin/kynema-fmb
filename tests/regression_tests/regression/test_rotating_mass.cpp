@@ -45,7 +45,7 @@ TEST(RotatingMass, InitializeRevoluteJoint) {
     auto torque = 6.;
     auto axis = std::array{0., 1., 0.};
 
-    model.AddRevoluteJointConstraint(
+    const auto revolute_joint_id = model.AddRevoluteJointConstraint(
         std::array{fixed_node_id, mass_node_id},
         axis,
         &torque);
@@ -81,6 +81,18 @@ TEST(RotatingMass, InitializeRevoluteJoint) {
     EXPECT_NEAR(v_host(0, 3), 0., 1.e-12);
     EXPECT_NEAR(v_host(0, 4), 2.9985, 1.e-12);
     EXPECT_NEAR(v_host(0, 5), 0., 1.e-12);
+
+    // Use constraint interface to get position/velocity/accel
+    const auto constraint_angle = constraints.host_output(revolute_joint_id, 0);
+    const auto constraint_velocity = constraints.host_output(revolute_joint_id, 1);
+    const auto constraint_accel = constraints.host_output(revolute_joint_id, 2);
+
+    // Values taken from running test, round to analytical solution.
+    // Verify that the measurements of the angles from the constraint are correct.
+    EXPECT_NEAR(constraint_angle, 1.498503, 1.e-12);
+    EXPECT_NEAR(constraint_velocity, 2.9985, 1.e-12);
+    EXPECT_NEAR(constraint_accel, 3., 1.e-12);
+
 }
 
 
@@ -118,7 +130,7 @@ TEST(RotatingMass, UpdateRevoluteJoint) {
     auto torque = 6.;
     auto axis = std::array{0., 1., 0.};
 
-    model.AddRevoluteJointConstraint(
+    const auto revolute_joint_id = model.AddRevoluteJointConstraint(
         std::array{fixed_node_id, mass_node_id},
         axis,
         &torque);
@@ -157,6 +169,17 @@ TEST(RotatingMass, UpdateRevoluteJoint) {
     EXPECT_NEAR(v_host(0, 3), 0., 1.e-12);
     EXPECT_NEAR(v_host(0, 4), 2.9985, 1.e-12);
     EXPECT_NEAR(v_host(0, 5), 0., 1.e-12);
+
+    // Use constraint interface to get position/velocity/accel
+    const auto constraint_angle = constraints.host_output(revolute_joint_id, 0);
+    const auto constraint_velocity = constraints.host_output(revolute_joint_id, 1);
+    const auto constraint_accel = constraints.host_output(revolute_joint_id, 2);
+
+    // Values taken from running test, round to analytical solution.
+    // Verify that the measurements of the angles from the constraint are correct.
+    EXPECT_NEAR(constraint_angle, 1.498503, 1.e-12);
+    EXPECT_NEAR(constraint_velocity, 2.9985, 1.e-12);
+    EXPECT_NEAR(constraint_accel, 3., 1.e-12);
 }
 
 
@@ -194,7 +217,7 @@ TEST(RotatingMass, FlippedRevoluteJoint) {
     auto torque = 6.;
     auto axis = std::array{0., 1., 0.};
 
-    model.AddRevoluteJointConstraint(
+    const auto revolute_joint_id = model.AddRevoluteJointConstraint(
         std::array{mass_node_id, fixed_node_id},
         axis,
         &torque);
@@ -230,6 +253,17 @@ TEST(RotatingMass, FlippedRevoluteJoint) {
     EXPECT_NEAR(v_host(0, 3), 0., 1.e-12);
     EXPECT_NEAR(v_host(0, 4), -2.9985, 1.e-12);
     EXPECT_NEAR(v_host(0, 5), 0., 1.e-12);
+
+    // Use constraint interface to get position/velocity/accel
+    const auto constraint_angle = constraints.host_output(revolute_joint_id, 0);
+    const auto constraint_velocity = constraints.host_output(revolute_joint_id, 1);
+    const auto constraint_accel = constraints.host_output(revolute_joint_id, 2);
+
+    // Values taken from running test, round to analytical solution.
+    // Verify that the measurements of the angles from the constraint are correct.
+    EXPECT_NEAR(constraint_angle, 1.498503, 1.e-12);
+    EXPECT_NEAR(constraint_velocity, 2.9985, 1.e-12);
+    EXPECT_NEAR(constraint_accel, 3., 1.e-12);
 }
 
 
